@@ -173,8 +173,8 @@ def call_update_instance_info(options):
 
 	for ctx in contexts:
 		ctx_instance_ids = [inst.id for inst in instance_info[ctx]]
-		ssh_user = instance_info[ctx][0].user
-		ssh_key = instance_info[ctx][0].key
+		ssh_user = options.user if len(options.user) != 0 else instance_info[ctx][0].user
+		ssh_key = options.key if len(options.key) != 0 else instance_info[ctx][0].key
 		instance_info[ctx] = update_instance_info(ctx_instance_ids, ssh_user, ssh_key)
 
 	write_instance_cache_file(instance_info)
@@ -233,7 +233,7 @@ def ssh_to_instance(options):
 	if current_instance.pub_ip == '0':
 		instance_info[options.ctx] = \
 			update_instance_info([id for id in instance_info[options.ctx]],
-			current_instance.user, current_instance.ssh_key)
+			current_instance.user, current_instance.key)
 		current_instance = instance_info[options.ctx][options.index]
 		if current_instance.pub_ip == '0':
 			print("Public IP is '0'. Make sure instance is running")
