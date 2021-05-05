@@ -226,11 +226,11 @@ def ssh_to_instance(options):
 	current_instance = instance_info[options.ctx][options.index]
 
 	if current_instance.pub_ip == '0':
-		instance_info[options.ctx] =
+		instance_info[options.ctx] = \
 			update_instance_info([id for id in instance_info[options.ctx]],
 			current_instance.user, current_instance.ssh_key)
 		current_instance = instance_info[options.ctx][options.index]
-		if current_instance.pub_ip = '0':
+		if current_instance.pub_ip == '0':
 			print("Public IP is '0'. Make sure instance is running")
 			exit(13)
 
