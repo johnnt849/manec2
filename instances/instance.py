@@ -16,6 +16,7 @@ def read_instance_cache_file():
 
 	for ctx in instance_info.keys():
 		instance_info[ctx] = [deserialize(json_rep) for json_rep in instance_info[ctx]]
+		instance_info[ctx].sort(key=lambda x : x.id)
 
 	return instance_info
 
@@ -136,8 +137,8 @@ def start_instances(options):
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		if options.one:
-			instance_ids = [instance_ids[0]]
+		if options.index != -1:
+			instance_ids = [instance_ids[options.index]]
 
 		ec2_cli.start_instances(InstanceIds=instance_ids)
 		print("Starting instances", ", ".join([str(id) for id in instance_ids]))
@@ -154,8 +155,8 @@ def stop_instances(options):
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		if options.one:
-			instance_ids = [instance_ids[0]]
+		if options.index != -1:
+			instance_ids = [instance_ids[options.index]]
 
 		ec2_cli.stop_instances(InstanceIds=instance_ids)
 		print("Stopping instances", ", ".join([str(id) for id in instance_ids]))
