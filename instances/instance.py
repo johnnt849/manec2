@@ -184,7 +184,7 @@ def print_full_info(ctx, instance_info):
 	ssh_user = instance_info[ctx][0].user
 	ssh_key = instance_info[ctx][0].key
 	instance_info[ctx] = update_instance_info(ctx_instance_ids, ssh_user, ssh_key)
-	print("Context '" + ctx + "' has " + str(len(instance_info[ctx])) + " instances:")
+	print(str(len(instance_info[ctx])) + " instances:")
 	for i, inst in enumerate(instance_info[ctx]):
 		print("  {:2d}  {}  {}  {}  {:15}  {}".format(i, inst.id, inst.type,
 			inst.placement, inst.pr_ip, inst.last_observed_state))
@@ -213,6 +213,7 @@ def get_instance_info(options):
 				print(i, " ", inst.state)
 			else:
 				print_full_info(ctx, instance_info)
+				break
 
 			i += 1
 
@@ -225,8 +226,13 @@ def ssh_to_instance(options):
 	current_instance = instance_info[options.ctx][options.index]
 
 	if current_instance.pub_ip == '0':
-		print("Public IP is '0'. Make sure instance is running")
-		exit(13)
+		instance_info[options.ctx] =
+			update_instance_info([id for id in instance_info[options.ctx]],
+			current_instance.user, current_instance.ssh_key)
+		current_instance = instance_info[options.ctx][options.index]
+		if current_instance.pub_ip = '0':
+			print("Public IP is '0'. Make sure instance is running")
+			exit(13)
 
 	if options.user == '' and current_instance.user == '':
 		print("No cached user for this instance. Please provide a user (--user)")
@@ -247,6 +253,10 @@ def ssh_to_instance(options):
 		+ [ssh_user + '@' + current_instance.pub_ip] \
 		+ options.comm.split()
 
-	print("COMMAND", ssh_command)
-
 	subprocess.run(ssh_command)
+
+def rsync_instance(options):
+	pass
+
+def scp_instance(options):
+	pass
