@@ -13,8 +13,8 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--cnt', type=int, default=1)
 	create_instance_parser.add_argument('--az', type=str, default=None)
 	create_instance_parser.add_argument('--spot', action='store_true')
-	create_instance_parser.add_argument('--user', type=str, default='')
-	create_instance_parser.add_argument('--key', type=str, default='')
+	create_instance_parser.add_argument('--user', '-u', type=str, default='')
+	create_instance_parser.add_argument('--key', '-i', type=str, default='')
 
 	from manec2.instances.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
@@ -25,19 +25,21 @@ def add_arguments(parser):
 	start_instance_parser = subparsers.add_parser('start', help=None)
 	start_instance_parser.set_defaults(command=start_instances_command)
 	start_instance_parser.add_argument('--ctx', type=str, default=None)
+	start_instance_parser.add_argument('--index', '-ind', type=str, default=None)
 	start_instance_parser.add_argument('--one', action='store_true')
 
 	from manec2.instances.command import stop_instances_command
 	stop_instance_parser = subparsers.add_parser('stop', help=None)
 	stop_instance_parser.set_defaults(command=stop_instances_command)
 	stop_instance_parser.add_argument('--ctx', type=str, default=None)
+	stop_instance_parser.add_argument('--index', '-ind', type=str, default=None)
 	stop_instance_parser.add_argument('--one', action='store_true')
 
 	from manec2.instances.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
 	info_instance_parser.set_defaults(command=info_instances_command)
 	info_instance_parser.add_argument('--ctx', type=str, default='all')
-	info_instance_parser.add_argument('--index', type=int, default=-1)
+	info_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
 	info_instance_parser.add_argument('--pubip', action='store_true')
 	info_instance_parser.add_argument('--prip', action='store_true')
 	info_instance_parser.add_argument('--type', action='store_true')
@@ -53,10 +55,10 @@ def add_arguments(parser):
 	ssh_instance_parser = subparsers.add_parser('ssh', help=None)
 	ssh_instance_parser.set_defaults(command=ssh_instance_command)
 	ssh_instance_parser.add_argument('--ctx', type=str, default=None)
-	ssh_instance_parser.add_argument('--index', type=int, default=0)
-	ssh_instance_parser.add_argument('--user', type=str, default='')
-	ssh_instance_parser.add_argument('--key', type=str, default='')
-	ssh_instance_parser.add_argument('--comm', type=str, default='')
+	ssh_instance_parser.add_argument('--index', '-ind', type=int, default=0)
+	ssh_instance_parser.add_argument('--user', '-u', type=str, default='')
+	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
+	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
 
 
 ## Commands that interact with AWS infrastructure
@@ -89,3 +91,11 @@ def info_instances_command(options):
 def ssh_instance_command(options):
 	from .instance import ssh_to_instance
 	ssh_to_instance(options)
+
+def rsync_instance_command(options):
+	from .instance import rsync_instance
+	rsync_instance(options)
+
+def scp_instance_command(options):
+	from .instance import scp_instance
+	scp_instance(options)
