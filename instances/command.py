@@ -45,6 +45,7 @@ def add_arguments(parser):
 	info_instance_parser.add_argument('--type', action='store_true')
 	info_instance_parser.add_argument('--zone', action='store_true')
 	info_instance_parser.add_argument('--state', action='store_true')
+	info_instance_parser.add_argument('--text', action='store_true')
 
 	from manec2.instances.command import update_instance_info_command
 	update_instance_parser = subparsers.add_parser('update', help=None)

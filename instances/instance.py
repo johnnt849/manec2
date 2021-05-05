@@ -197,23 +197,28 @@ def get_instance_info(options):
 		contexts = [options.ctx]
 
 	for ctx in contexts:
-		print("Context '" + ctx + "'")
+		if not options.text:
+			print("Context '" + ctx + "'")
 		instances = instance_info[ctx] if options.index == -1 else [instance_info[ctx][options.index]]
 		i = 0 if options.index == -1 else options.index
 		for inst in instances:
+			msg = ''
 			if options.pubip:
-				print(i, " ", inst.pub_ip)
+				msg = inst.pub_ip
 			elif options.prip:
-				print(i, " ",  inst.pr_ip)
+				msg = inst.pr_ip
 			elif options.type:
-				print(i, " ",  inst.type)
+				msg = inst.type
 			elif options.zone:
-				print(i, " ", inst.placement)
+				msg = inst.zone
 			elif options.state:
-				print(i, " ", inst.state)
+				msg = inst.state
 			else:
 				print_full_info(ctx, instance_info)
 				break
+
+			msg = msg if options.text else "  ".join(["", str(i), msg])
+			print(msg)
 
 			i += 1
 
