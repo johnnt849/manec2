@@ -61,6 +61,23 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
 	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
 
+	from manec2.instances.command import rsync_instance_command
+	rsync_instance_parser = subparsers.add_parser('rsync', help=None)
+	rsync_instance_parser.set_defaults(command=rsync_instance_command)
+	rsync_instance_parser.add_argument('--ctx', type=str, default='')
+	rsync_instance_parser.add_argument('--user', '-u', type=str, default='')
+	rsync_instance_parser.add_argument('--key', '-i', type=str, default='')
+	rsync_instance_parser.add_argument('--exclude', '-e', nargs='+', type=str, default='')
+	rsync_instance_parser.add_argument('--file', '-f', type=str, default=None)
+	rsync_instance_parser.add_argument('--location', '-l', type=str, default='.')
+	rsync_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
+
+	from manec2.instances.command import scp_instance_command
+	scp_instance_parser = subparsers.add_parser('scp', help=None)
+	scp_instance_parser.set_defaults(command=scp_instance_command)
+	scp_instance_parser.add_argument('--get', action='store_true')
+	scp_instance_parser.add_argument('--put', action='store_true')
+
 
 ## Commands that interact with AWS infrastructure
 def create_instances_command(options):

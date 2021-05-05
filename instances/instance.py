@@ -233,7 +233,7 @@ def ssh_to_instance(options):
 
 	if current_instance.pub_ip == '0':
 		instance_info[options.ctx] = \
-			update_instance_info([id for id in instance_info[options.ctx]],
+			update_instance_info([inst.id for inst in instance_info[options.ctx]],
 			current_instance.user, current_instance.key)
 		current_instance = instance_info[options.ctx][options.index]
 		if current_instance.pub_ip == '0':
@@ -262,7 +262,51 @@ def ssh_to_instance(options):
 	subprocess.run(ssh_command)
 
 def rsync_instance(options):
-	pass
+	instance_info = read_instance_cache_file()
+
+	current_instances = instance_info[options.ctx]
+	if options.index != -1:
+		current_instances = [current_instances[options.index]]
+
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			instance_info[options.ctx] = \
+				update_instance_info([inst.id for inst in instance_info[options.ctx]],
+				current_instances[0].user, current_instances[0].key)
+
+	current_instances = instance_info[options.ctx]
+	if options.index != -1:
+		current_instances = [current_instances[options.index]]
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			print("At least one public IP is '0'. Make sure instance is running")
+			exit(13)
+
+	if options.user == '' and current_instances[0].user == '':
+		print("No cached user for this instance. Please provide a user (--user)")
+		exit(15)
+
+	ssh_user = current_instances[0].user
+	if options.user != '':
+		ssh_user = options.user
+
+	ssh_key = current_instances[0].key
+	if options.key != '':
+		ssh_key = options.key
+
+	remote_access_opts = []
+	if ssh_key != '':
+		remote_access_opts = ['-i', ssh_key]
+	for inst in current_instances:
+		exclusions = ['--exclude'] + ' --exclude '.join(options.exclude).split() \
+			if len(options.exclude) != 0 else []
+		rsync_command = ['rsync', '-auzh'] \
+			+ ['-e'] + ["\"" + ' '.join(["ssh"] + remote_access_opts) + "\""] \
+			+ exclusions + [options.file] \
+			+ [ssh_user + '@' + inst.pub_ip + ":" + options.location]
+		print(rsync_command)
+
+
 
 def scp_instance(options):
 	pass
