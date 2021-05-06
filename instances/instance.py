@@ -297,16 +297,33 @@ def rsync_instance(options):
 	remote_access_opts = []
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
+
+	confirmed = False
 	for inst in current_instances:
+		if options.force:
+			delete_dir_command = 'rm -rf ' + options.location
+			create_dir_command = 'mkdir -p ' + options.location
+			ssh_command_base = ['ssh'] + remote_access_opts \
+				+ [ssh_user + '@' + inst.pub_ip]
+			if not confirmed:
+				confirm = input("Are you sure you want to run 'rm -rf' on '"
+					+ options.file + "'? (yes/no)\n")
+				confirmed = confirm == 'yes'
+			if confirmed:
+				subprocess.run(ssh_command_base + delete_dir_command.split())
+				subprocess.run(ssh_command_base + create_dir_command.split())
+			else:
+				return
+
 		exclusions = ['--exclude'] + ' --exclude '.join(options.exclude).split() \
 			if len(options.exclude) != 0 else []
-		rsync_command = ['rsync', '-auzh'] \
-			+ ['-e'] + ["\"" + ' '.join(["ssh"] + remote_access_opts) + "\""] \
+		rsync_command = ['rsync', '-auzh', '-zz'] \
+			+ ['-e'] + [' '.join(["ssh"] + remote_access_opts)] \
 			+ exclusions + [options.file] \
 			+ [ssh_user + '@' + inst.pub_ip + ":" + options.location]
+
 		print(rsync_command)
-
-
+		subprocess.run(rsync_command)
 
 def scp_instance(options):
 	pass

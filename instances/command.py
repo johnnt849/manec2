@@ -57,6 +57,7 @@ def add_arguments(parser):
 	ssh_instance_parser.set_defaults(command=ssh_instance_command)
 	ssh_instance_parser.add_argument('--ctx', type=str, default=None)
 	ssh_instance_parser.add_argument('--index', '-ind', type=int, default=0)
+	ssh_instance_parser.add_argument('--all', action='store_true')
 	ssh_instance_parser.add_argument('--user', '-u', type=str, default='')
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
 	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
@@ -71,6 +72,7 @@ def add_arguments(parser):
 	rsync_instance_parser.add_argument('--file', '-f', type=str, default=None)
 	rsync_instance_parser.add_argument('--location', '-l', type=str, default='.')
 	rsync_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
+	rsync_instance_parser.add_argument('--force', action='store_true')
 
 	from manec2.instances.command import scp_instance_command
 	scp_instance_parser = subparsers.add_parser('scp', help=None)
