@@ -229,37 +229,44 @@ def get_instance_info(options):
 def ssh_to_instance(options):
 	instance_info = read_instance_cache_file()
 
-	current_instance = instance_info[options.ctx][options.index]
+	current_instances = instance_info[options.ctx] if options.all \
+		else [instance_info[options.ctx][options.index]]
 
-	if current_instance.pub_ip == '0':
-		instance_info[options.ctx] = \
-			update_instance_info([inst.id for inst in instance_info[options.ctx]],
-			current_instance.user, current_instance.key)
-		current_instance = instance_info[options.ctx][options.index]
-		if current_instance.pub_ip == '0':
-			print("Public IP is '0'. Make sure instance is running")
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			instance_info[options.ctx] = \
+				update_instance_info([inst.id for inst in instance_info[options.ctx]],
+				current_instances[0].user, current_instances[0].key)
+
+	current_instances = instance_info[options.ctx] if options.all \
+		else [instance_info[options.ctx][options.index]]
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			print("At least one public IP is '0'. Make sure instance is running")
 			exit(13)
 
-	if options.user == '' and current_instance.user == '':
+	if options.user == '' and current_instances[0].user == '':
 		print("No cached user for this instance. Please provide a user (--user)")
 		exit(15)
 
-	ssh_user = current_instance.user
+	ssh_user = current_instances[0].user
 	if options.user != '':
 		ssh_user = options.user
 
-	ssh_key = current_instance.key
+	ssh_key = current_instances[0].key
 	if options.key != '':
 		ssh_key = options.key
 
 	remote_access_opts = []
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
-	ssh_command = ['ssh'] + remote_access_opts \
-		+ [ssh_user + '@' + current_instance.pub_ip] \
-		+ options.comm.split()
 
-	subprocess.run(ssh_command)
+	for inst in current_instances:
+		ssh_command = ['ssh'] + remote_access_opts \
+			+ [ssh_user + '@' + inst.pub_ip] \
+			+ options.comm.split()
+
+		subprocess.run(ssh_command)
 
 def rsync_instance(options):
 	instance_info = read_instance_cache_file()
