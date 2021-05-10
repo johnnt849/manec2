@@ -71,7 +71,18 @@ def create_instances(options):
 		'InstanceType': options.type,
 		'MinCount': options.cnt,
 		'MaxCount': options.cnt,
-		'SecurityGroupIds': ['sg-098524cf5a5d0011f']
+		'SecurityGroupIds': ['sg-098524cf5a5d0011f'],
+		'TagSpecifications': [
+			{
+				'ResourceType': 'instance',
+				'Tags': [
+					{
+						'Key': 'Name',
+						'Value': options.ctx
+					}
+				]
+			}
+		]
 	}
 
 	if options.type != 't2.micro':
