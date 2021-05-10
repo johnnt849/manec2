@@ -40,6 +40,7 @@ def add_arguments(parser):
 	info_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
 	info_instance_parser.add_argument('--pubip', action='store_true')
 	info_instance_parser.add_argument('--prip', action='store_true')
+	info_instance_parser.add_argument('--dns', action='store_true')
 	info_instance_parser.add_argument('--type', action='store_true')
 	info_instance_parser.add_argument('--zone', action='store_true')
 	info_instance_parser.add_argument('--state', action='store_true')

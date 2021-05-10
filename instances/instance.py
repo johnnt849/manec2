@@ -46,8 +46,8 @@ def update_instance_info(instance_ids, ssh_user, ssh_key):
 			if state ==  'running':
 				pubip = inst['PublicIpAddress']
 				dns = inst['PublicDnsName']
-			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip, state,
-				ssh_user, ssh_key))
+			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip,
+				dns, state, ssh_user, ssh_key))
 
 	instances.sort(key=lambda x : x.id)
 	return instances
@@ -210,6 +210,8 @@ def get_instance_info(options):
 			msg = ''
 			if options.pubip:
 				msg = inst.pub_ip
+			elif options.dns:
+				msg = inst.dns
 			elif options.prip:
 				msg = inst.pr_ip
 			elif options.type:
