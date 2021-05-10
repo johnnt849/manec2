@@ -40,10 +40,12 @@ def update_instance_info(instance_ids, ssh_user, ssh_key):
 			state = inst['State']['Name']
 			prip = '0'
 			pubip = '0'
+			dns = '0'
 			if state != 'terminated':
 				prip = inst['PrivateIpAddress']
 			if state ==  'running':
 				pubip = inst['PublicIpAddress']
+				dns = inst['PublicDnsName']
 			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip, state,
 				ssh_user, ssh_key))
 
@@ -163,6 +165,7 @@ def stop_instances(options):
 		print("Stopping instances", ", ".join([str(id) for id in instance_ids]))
 		for inst in instance_info[ctx]:
 			inst.pub_ip = '0'
+			inst.dns = '0'
 
 	write_instance_cache_file(instance_info)
 
@@ -264,7 +267,7 @@ def ssh_to_instance(options):
 
 	for inst in current_instances:
 		ssh_command = ['ssh'] + remote_access_opts \
-			+ [ssh_user + '@' + inst.pub_ip] \
+			+ [ssh_user + '@' + inst.dns] \
 			+ options.comm.split()
 
 		subprocess.run(ssh_command)
@@ -312,7 +315,7 @@ def rsync_instance(options):
 			delete_dir_command = 'rm -rf ' + options.location
 			create_dir_command = 'mkdir -p ' + options.location
 			ssh_command_base = ['ssh'] + remote_access_opts \
-				+ [ssh_user + '@' + inst.pub_ip]
+				+ [ssh_user + '@' + inst.dns]
 			if not confirmed:
 				confirm = input("Are you sure you want to run 'rm -rf' on '"
 					+ options.file + "'? (yes/no)\n")
@@ -328,7 +331,7 @@ def rsync_instance(options):
 		rsync_command = ['rsync', '-auzh', '-zz'] \
 			+ ['-e'] + [' '.join(["ssh"] + remote_access_opts)] \
 			+ exclusions + [options.file] \
-			+ [ssh_user + '@' + inst.pub_ip + ":" + options.location]
+			+ [ssh_user + '@' + inst.dns+ ":" + options.location]
 
 		print(rsync_command)
 		subprocess.run(rsync_command)
