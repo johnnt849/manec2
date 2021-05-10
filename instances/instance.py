@@ -47,6 +47,7 @@ def update_instance_info(instance_ids, ssh_user, ssh_key):
 			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip, state,
 				ssh_user, ssh_key))
 
+	instances.sort(key=lambda x : x.id)
 	return instances
 
 
