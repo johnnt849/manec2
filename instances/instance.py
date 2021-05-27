@@ -27,7 +27,6 @@ def write_instance_cache_file(instance_info):
 
 	json.dump(instance_info, open(INSTANCE_CACHE_FILE, 'w'), indent=4)
 
-
 def update_instance_info(instance_ids, ssh_user, ssh_key):
 	ec2_cli = boto3.client('ec2')
 	response = ec2_cli.describe_instances(InstanceIds=instance_ids)
@@ -51,7 +50,6 @@ def update_instance_info(instance_ids, ssh_user, ssh_key):
 
 	instances.sort(key=lambda x : x.id)
 	return instances
-
 
 def create_instances(options):
 	if options.ctx == 'all':
@@ -151,8 +149,8 @@ def start_instances(options):
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		if options.index != -1:
-			instance_ids = [instance_ids[options.index]]
+		if options.indices != -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
 		ec2_cli.start_instances(InstanceIds=instance_ids)
 		print("Starting instances", ", ".join([str(id) for id in instance_ids]))
@@ -169,8 +167,8 @@ def stop_instances(options):
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		if options.index != -1:
-			instance_ids = [instance_ids[options.index]]
+		if options.indices != -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
 		ec2_cli.stop_instances(InstanceIds=instance_ids)
 		print("Stopping instances", ", ".join([str(id) for id in instance_ids]))
@@ -190,8 +188,8 @@ def reboot_instances(options):
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		if options.index != -1:
-			instance_ids = [instance_ids[options.index]]
+		if options.indices!= -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
 		ec2_cli.reboot_instances(InstanceIds=instance_ids)
 		print("Rebooting instances", ", ".join([str(id) for id in instance_ids]))
@@ -233,8 +231,9 @@ def get_instance_info(options):
 	for ctx in contexts:
 		if not options.text:
 			print("Context '" + ctx + "'")
-		instances = instance_info[ctx] if options.index == -1 else [instance_info[ctx][options.index]]
-		i = 0 if options.index == -1 else options.index
+		instances = instance_info[ctx] if options.indices == -1 \
+			else [instance_info[ctx][i] for i in options.indices]
+		i = 0 if options.indices == -1 else options.indices
 		for inst in instances:
 			msg = ''
 			if options.pubip:
@@ -260,12 +259,11 @@ def get_instance_info(options):
 
 	write_instance_cache_file(instance_info)
 
-
 def ssh_to_instance(options):
 	instance_info = read_instance_cache_file()
 
 	current_instances = instance_info[options.ctx] if options.all \
-		else [instance_info[options.ctx][options.index]]
+		else [instance_info[options.ctx][i] for i in options.indices]
 
 	for inst in current_instances:
 		if inst.pub_ip == '0':
@@ -274,7 +272,7 @@ def ssh_to_instance(options):
 				current_instances[0].user, current_instances[0].key)
 
 	current_instances = instance_info[options.ctx] if options.all \
-		else [instance_info[options.ctx][options.index]]
+		else [instance_info[options.ctx][i] for i in options.indices]
 	for inst in current_instances:
 		if inst.pub_ip == '0':
 			print("At least one public IP is '0'. Make sure instance is running")
@@ -307,8 +305,8 @@ def rsync_instance(options):
 	instance_info = read_instance_cache_file()
 
 	current_instances = instance_info[options.ctx]
-	if options.index != -1:
-		current_instances = [current_instances[options.index]]
+	if options.indices != -1:
+		current_instances = [current_instances[i] for i in options.indices]
 
 	for inst in current_instances:
 		if inst.pub_ip == '0':
@@ -317,8 +315,8 @@ def rsync_instance(options):
 				current_instances[0].user, current_instances[0].key)
 
 	current_instances = instance_info[options.ctx]
-	if options.index != -1:
-		current_instances = [current_instances[options.index]]
+	if options.indices != -1:
+		current_instances = [current_instances[i] for i in options.indices]
 	for inst in current_instances:
 		if inst.pub_ip == '0':
 			print("At least one public IP is '0'. Make sure instance is running")
