@@ -180,6 +180,24 @@ def stop_instances(options):
 
 	write_instance_cache_file(instance_info)
 
+def reboot_instances(options):
+	instance_info = read_instance_cache_file()
+
+	contexts = instance_info.keys()
+	if options.ctx != 'all':
+		contexts = [options.ctx]
+
+	ec2_cli = boto3.client('ec2')
+	for ctx in contexts:
+		instance_ids = [inst.id for inst in instance_info[ctx]]
+		if options.index != -1:
+			instance_ids = [instance_ids[options.index]]
+
+		ec2_cli.reboot_instances(InstanceIds=instance_ids)
+		print("Rebooting instances", ", ".join([str(id) for id in instance_ids]))
+
+	write_instance_cache_file(instance_info)
+
 def call_update_instance_info(options):
 	instance_info = read_instance_cache_file()
 
@@ -346,7 +364,6 @@ def rsync_instance(options):
 			+ exclusions + [options.file] \
 			+ [ssh_user + '@' + inst.dns+ ":" + options.location]
 
-		print(rsync_command)
 		subprocess.run(rsync_command)
 
 def scp_instance(options):

@@ -33,6 +33,12 @@ def add_arguments(parser):
 	stop_instance_parser.add_argument('ctx', type=str, default=None)
 	stop_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
 
+	from manec2.instances.command import reboot_instances_command
+	stop_instance_parser = subparsers.add_parser('reboot', help=None)
+	stop_instance_parser.set_defaults(command=reboot_instances_command)
+	stop_instance_parser.add_argument('ctx', type=str, default=None)
+	stop_instance_parser.add_argument('--index', '-ind', type=int, default=-1)
+
 	from manec2.instances.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
 	info_instance_parser.set_defaults(command=info_instances_command)
@@ -99,6 +105,10 @@ def start_instances_command(options):
 def stop_instances_command(options):
 	from .instance import stop_instances
 	stop_instances(options)
+
+def reboot_instances_command(options):
+	from .instance import reboot_instances
+	reboot_instances(options)
 
 def update_instance_info_command(options):
 	from .instance import call_update_instance_info
