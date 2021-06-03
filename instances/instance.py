@@ -293,6 +293,7 @@ def ssh_to_instance(options):
 	remote_access_opts = []
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
+		remote_access_opts = remote_access_opts + ['-t'] if options.sudo else remote_access_opts
 
 	for inst in current_instances:
 		ssh_command = ['ssh'] + remote_access_opts \

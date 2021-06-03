@@ -70,9 +70,12 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=[0])
 	ssh_instance_parser.add_argument('--all', action='store_true')
+
 	ssh_instance_parser.add_argument('--user', '-u', type=str, default='')
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
 	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
+
+	ssh_instance_parser.add_argument('--sudo', '-s', action='store_true')
 
 	from manec2.instances.command import rsync_instance_command
 	rsync_instance_parser = subparsers.add_parser('rsync', help=None)
