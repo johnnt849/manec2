@@ -233,7 +233,7 @@ def get_instance_info(options):
 			print("Context '" + ctx + "'")
 		instances = instance_info[ctx] if options.indices == -1 \
 			else [instance_info[ctx][i] for i in options.indices]
-		i = 0 if options.indices == -1 else options.indices
+		i = 0 if options.indices == -1 else options.indices[0]
 		for inst in instances:
 			msg = ''
 			if options.pubip:
