@@ -348,7 +348,7 @@ def rsync_instance(options):
 				+ [ssh_user + '@' + inst.dns]
 			if not confirmed:
 				confirm = input("Are you sure you want to run 'rm -rf' on '"
-					+ options.file + "'? (yes/no)\n")
+					+ options.location + "'? (yes/no)\n")
 				confirmed = confirm == 'yes'
 			if confirmed:
 				subprocess.run(ssh_command_base + delete_dir_command.split())
@@ -366,4 +366,47 @@ def rsync_instance(options):
 		subprocess.run(rsync_command)
 
 def scp_instance(options):
-	pass
+	instance_info = read_instance_cache_file()
+
+	current_instances = instance_info[options.ctx]
+	if options.indices != -1:
+		current_instances = [current_instances[i] for i in options.indices]
+
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			instance_info[options.ctx] = \
+				update_instance_info([inst.id for inst in instance_info[options.ctx]],
+				current_instances[0].user, current_instances[0].key)
+
+	current_instances = instance_info[options.ctx]
+	if options.indices != -1:
+		current_instances = [current_instances[i] for i in options.indices]
+	for inst in current_instances:
+		if inst.pub_ip == '0':
+			print("At least one public IP is '0'. Make sure instance is running")
+			exit(13)
+
+	if options.user == '' and current_instances[0].user == '':
+		print("No cached user for this instance. Please provide a user (--user)")
+		exit(15)
+
+	ssh_user = current_instances[0].user
+	if options.user != '':
+		ssh_user = options.user
+
+	ssh_key = current_instances[0].key
+	if options.key != '':
+		ssh_key = options.key
+
+	remote_access_opts = []
+	if ssh_key != '':
+		remote_access_opts = ['-i', ssh_key]
+
+	scp_cmd = ['scp'] + remote_access_opts
+	for inst in current_instances:
+		if options.put:
+			scp_cmd = scp_cmd + [options.file, ssh_user + '@' + inst.dns + ':' + options.location]
+		elif options.get:
+			scp_cmd = scp_cmd + [ssh_user + '@' + inst.dns + ':' + options.file, options.location]
+
+		subprocess.run(scp_cmd)
