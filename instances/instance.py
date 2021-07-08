@@ -5,7 +5,7 @@ import time
 import subprocess
 
 import manec2
-from manec2.instances import INSTANCE_CACHE_FILE
+from manec2.instances import INSTANCE_CACHE_DIR, INSTANCE_CACHE_FILE
 from manec2.instances.instance_type import Instance, deserialize
 
 
@@ -21,6 +21,9 @@ def read_instance_cache_file():
 	return instance_info
 
 def write_instance_cache_file(instance_info):
+	if not os.path.exists(INSTANCE_CACHE_DIR):
+		os.mkdir(INSTANCE_CACHE_DIR)
+
 	for ctx in instance_info.keys():
 		instance_info[ctx].sort(key=lambda x : x.id)
 		instance_info[ctx] = [inst.serialize() for inst in instance_info[ctx]]
