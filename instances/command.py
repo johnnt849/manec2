@@ -20,6 +20,8 @@ def add_arguments(parser):
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
 	terminate_instance_parser.set_defaults(command=terminate_instances_command)
 	terminate_instance_parser.add_argument('ctx', type=str, default=None)
+	terminate_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
+										default=-1)
 
 	from manec2.instances.command import start_instances_command
 	start_instance_parser = subparsers.add_parser('start', help=None)

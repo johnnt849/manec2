@@ -129,16 +129,26 @@ def terminate_instances(options):
 
 	ec2_cli = boto3.client('ec2')
 	for ctx in contexts:
-		confirm = input("Are you sure you want to terminate ALL instances in context "
-			+ ctx + "?\nType 'terminate' to confirm.\n")
+		msg = f"Are you sure you want to terminate " + \
+			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
+			+ f"in context '{ctx}'?\nType 'terminate' to confirm\n"
+		confirm = input(msg)
 
 		if confirm != 'terminate':
 			continue
 
 		instance_ids = [inst.id for inst in instance_info[ctx]]
-		ec2_cli.terminate_instances(InstanceIds=instance_ids)
-		print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
-		del instance_info[ctx]
+		if options.indices != -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
+			ec2_cli.terminate_instances(InstanceIds=instance_ids)
+			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
+			reverse_sorted_inds = sorted(options.indices, reverse=True)
+			for ind in reverse_sorted_inds:
+				del instance_info[ctx][ind]
+		else:
+			ec2_cli.terminate_instances(InstanceIds=instance_ids)
+			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
+			del instance_info[ctx]
 
 	write_instance_cache_file(instance_info)
 
