@@ -12,6 +12,7 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--type', type=str, default='t2.micro')
 	create_instance_parser.add_argument('--cnt', type=int, default=1)
 	create_instance_parser.add_argument('--az', type=str, default=None)
+	create_instance_parser.add_argument('--pg', type=str, default=None)
 	create_instance_parser.add_argument('--spot', action='store_true')
 	create_instance_parser.add_argument('--user', '-u', type=str, default='')
 	create_instance_parser.add_argument('--key', '-i', type=str, default='')

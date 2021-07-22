@@ -94,6 +94,11 @@ def create_instances(options):
 		if options.az[:-1] == 'us-east-2':
 			args['SecurityGroupIds'] = ['sg-0a98f6952f8c78610']
 
+	if options.pg != None:
+		if 'Placement' not in args:
+			args['Placement'] = { }
+
+		args['Placement'].update({ 'GroupName' : options.pg })
 
 	if options.spot:
 		args['InstanceMarketOptions'] = {
