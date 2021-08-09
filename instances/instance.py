@@ -291,10 +291,18 @@ def ssh_to_instance(options):
 
 	current_instances = instance_info[options.ctx] if options.all \
 		else [instance_info[options.ctx][i] for i in options.indices]
-	for inst in current_instances:
-		if inst.pub_ip == '0':
-			print("At least one public IP is '0'. Make sure instance is running")
+
+	if options.all:
+		## Filter for instances that are currently running
+		current_instances = [inst for inst in current_instances if inst.last_observed_state == 'running']
+		if len(current_instances) == 0:
+			print(f'No running instances in context {options.ctx}')
 			exit(13)
+	else:
+		for inst in current_instances:
+			if inst.pub_ip == '0':
+				print("At least one public IP is '0'. Make sure instance is running")
+				exit(13)
 
 	if options.user == '' and current_instances[0].user == '':
 		print("No cached user for this instance. Please provide a user (--user)")
@@ -343,8 +351,15 @@ def rsync_instance(options):
 				current_instances[0].user, current_instances[0].key)
 
 	current_instances = instance_info[options.ctx]
-	if options.indices != -1:
+	if options.indices == -1:
+		current_instances = [inst for inst in current_instances \
+							if inst.last_observed_state == 'running']
+		if len(current_instances) == 0:
+			print(f'No running instances in context {options.ctx}')
+			exit(13)
+	else:
 		current_instances = [current_instances[i] for i in options.indices]
+
 	for inst in current_instances:
 		if inst.pub_ip == '0':
 			print("At least one public IP is '0'. Make sure instance is running")
@@ -414,7 +429,13 @@ def scp_instance(options):
 				current_instances[0].user, current_instances[0].key)
 
 	current_instances = instance_info[options.ctx]
-	if options.indices != -1:
+	if options.indices == -1:
+		current_instances = [inst for inst in current_instances \
+							if inst.last_observed_state == 'running']
+		if len(current_instances) == 0:
+			print(f'No running instances in context {options.ctx}')
+			exit(13)
+	else:
 		current_instances = [current_instances[i] for i in options.indices]
 	for inst in current_instances:
 		if inst.pub_ip == '0':
