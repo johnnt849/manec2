@@ -78,6 +78,7 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
 	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
 
+	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	ssh_instance_parser.add_argument('--sudo', '-s', action='store_true')
 
 	from manec2.instances.command import rsync_instance_command
@@ -92,6 +93,7 @@ def add_arguments(parser):
 	rsync_instance_parser.add_argument('--location', '-l', type=str, default='.')
 	rsync_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									   default=-1)
+	rsync_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	rsync_instance_parser.add_argument('--force', action='store_true')
 
 	from manec2.instances.command import scp_instance_command

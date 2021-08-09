@@ -265,7 +265,7 @@ def get_instance_info(options):
 			elif options.zone:
 				msg = inst.zone
 			elif options.state:
-				msg = inst.state
+				msg = inst.last_observed_state
 			else:
 				print_full_info(ctx, instance_info)
 				break
@@ -313,12 +313,21 @@ def ssh_to_instance(options):
 		remote_access_opts = ['-i', ssh_key]
 		remote_access_opts = remote_access_opts + ['-t'] if options.sudo else remote_access_opts
 
+	processes = []
 	for inst in current_instances:
 		ssh_command = ['ssh'] + remote_access_opts \
 			+ [ssh_user + '@' + inst.dns] \
 			+ options.comm.split()
 
-		subprocess.run(ssh_command)
+		if options.parallel:
+			processes.append(subprocess.Popen(ssh_command))
+		else:
+			subprocess.run(ssh_command)
+
+	if options.parallel:
+		for proc in processes:
+			proc.wait()
+
 
 def rsync_instance(options):
 	instance_info = read_instance_cache_file()
@@ -358,6 +367,7 @@ def rsync_instance(options):
 		remote_access_opts = ['-i', ssh_key]
 
 	confirmed = False
+	processes = []
 	for inst in current_instances:
 		if options.force:
 			delete_dir_command = 'rm -rf ' + options.location
@@ -381,7 +391,14 @@ def rsync_instance(options):
 			+ exclusions + [options.file] \
 			+ [ssh_user + '@' + inst.dns+ ":" + options.location]
 
-		subprocess.run(rsync_command)
+		if options.parallel:
+			processes.append(subprocess.Popen(rsync_command))
+		else:
+			subprocess.run(rsync_command)
+
+	if options.parallel:
+		for proc in processes:
+			proc.wait()
 
 def scp_instance(options):
 	instance_info = read_instance_cache_file()
