@@ -263,7 +263,7 @@ def get_instance_info(options):
 			elif options.type:
 				msg = inst.type
 			elif options.zone:
-				msg = inst.zone
+				msg = inst.placement
 			elif options.state:
 				msg = inst.last_observed_state
 			else:
