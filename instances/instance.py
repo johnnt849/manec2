@@ -250,13 +250,10 @@ def call_update_instance_info(options):
 
 	write_instance_cache_file(instance_info)
 
-def print_full_info(ctx, instance_info):
-	ctx_instance_ids = [inst.id for inst in instance_info[ctx]]
-	ssh_user = instance_info[ctx][0].user
-	ssh_key = instance_info[ctx][0].key
-	instance_info[ctx] = update_instance_info(ctx_instance_ids, ssh_user, ssh_key)
+def print_full_info(indices, ctx, instance_info):
 	print(str(len(instance_info[ctx])) + " instances:")
-	for i, inst in enumerate(instance_info[ctx]):
+	for i in indices:
+		inst = instance_info[ctx][i]
 		print("  {:2d}  {}  {}  {}  {:15}  {}".format(i, inst.id, inst.type,
 			inst.placement, inst.pr_ip, inst.last_observed_state))
 
@@ -270,10 +267,13 @@ def get_instance_info(options):
 	for ctx in contexts:
 		if not options.text:
 			print("Context '" + ctx + "'")
-		instances = instance_info[ctx] if options.indices == -1 \
-			else [instance_info[ctx][i] for i in options.indices]
-		i = 0 if options.indices == -1 else options.indices[0]
-		for inst in instances:
+		indices = range(len(instance_info[ctx])) if options.indices == -1 else options.indices
+		instance_info[ctx] = update_instance_info([inst.id for inst in instance_info[ctx]],
+												  instance_info[ctx][0].user,
+												  instance_info[ctx][0].key)
+		for ind in indices:
+			inst = instance_info[ctx][ind]
+
 			msg = ''
 			if options.pubip:
 				msg = inst.pub_ip
@@ -288,13 +288,11 @@ def get_instance_info(options):
 			elif options.state:
 				msg = inst.last_observed_state
 			else:
-				print_full_info(ctx, instance_info)
+				print_full_info(indices, ctx, instance_info)
 				break
 
-			msg = msg if options.text else "  ".join(["", str(i), msg])
+			msg = msg if options.text else "  ".join(["", str(ind), msg])
 			print(msg)
-
-			i += 1
 
 	write_instance_cache_file(instance_info)
 
@@ -309,6 +307,7 @@ def ssh_to_instance(options):
 			instance_info[options.ctx] = \
 				update_instance_info([inst.id for inst in instance_info[options.ctx]],
 				current_instances[0].user, current_instances[0].key)
+			break
 
 	current_instances = instance_info[options.ctx] if options.all \
 		else [instance_info[options.ctx][i] for i in options.indices]
@@ -357,6 +356,7 @@ def ssh_to_instance(options):
 		for proc in processes:
 			proc.wait()
 
+	write_instance_cache_file(instance_info)
 
 def rsync_instance(options):
 	instance_info = read_instance_cache_file()
