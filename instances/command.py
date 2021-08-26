@@ -17,6 +17,14 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--user', '-u', type=str, default='')
 	create_instance_parser.add_argument('--key', '-i', type=str, default='')
 
+	from manec2.instances.command import add_instances_command
+	add_instance_parser = subparsers.add_parser('add', help=None)
+	add_instance_parser.set_defaults(command=add_instances_command)
+	add_instance_parser.add_argument('--ctx', type=str, default=None)
+	add_instance_parser.add_argument('--ids', type=str, nargs='+')
+	add_instance_parser.add_argument('--user', '-u', type=str, default='')
+	add_instance_parser.add_argument('--key', '-i', type=str, default='')
+
 	from manec2.instances.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
 	terminate_instance_parser.set_defaults(command=terminate_instances_command)
@@ -114,6 +122,10 @@ def add_arguments(parser):
 def create_instances_command(options):
 	from .instance import create_instances
 	create_instances(options)
+
+def add_instances_command(options):
+	from .instance import add_instances
+	add_instances(options)
 
 def terminate_instances_command(options):
 	from .instance import terminate_instances

@@ -109,11 +109,11 @@ def create_instances(options):
 			}
 		}
 
-	print(args)
+	print(f'Launching with args {args}')
 
 	response = ec2.create_instances(**args)
 	instance_ids = [inst.id for inst in response]
-	print("CREATED INSTANCES", instance_ids)
+	print("Created instances", instance_ids)
 	time.sleep(1)
 	created_instances = update_instance_info(instance_ids, options.user, options.key)
 
@@ -122,6 +122,27 @@ def create_instances(options):
 
 	instance_info[options.ctx] += created_instances
 	instance_info[options.ctx].sort(key=lambda x : x.id)
+
+	write_instance_cache_file(instance_info)
+
+def add_instances(options):
+	if options.ctx == 'all':
+		print("Context name 'all' is reserved. Choose another name")
+		exit(17)
+
+	instance_info = read_instance_cache_file()
+	ec2 = boto3.resource('ec2')
+	new_instances = []
+	for inst_id in options.ids:
+		new_instances.append(Instance(inst_id,
+				     '', '', '', '', '', '', '', ''))
+
+	existing_instances = instance_info[options.ctx] if options.ctx in instance_info else []
+	all_instances = new_instances + existing_instances
+	all_instance_ids = [inst.id for inst in all_instances]
+
+	instances = update_instance_info(all_instance_ids, options.user, options.key)
+	instance_info[options.ctx] = instances
 
 	write_instance_cache_file(instance_info)
 
