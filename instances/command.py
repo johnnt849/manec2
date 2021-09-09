@@ -4,6 +4,10 @@ HELP = None
 def add_arguments(parser):
 	subparsers = parser.add_subparsers(metavar='command')
 
+	from manec2.instances.command import get_contexts_command
+	get_contexts_parser = subparsers.add_parser('contexts', help=None)
+	get_contexts_parser.set_defaults(command=get_contexts_command)
+
 	from manec2.instances.command import create_instances_command
 	create_instance_parser = subparsers.add_parser('create', help=None)
 	create_instance_parser.set_defaults(command=create_instances_command)
@@ -16,14 +20,6 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--spot', action='store_true')
 	create_instance_parser.add_argument('--user', '-u', type=str, default='')
 	create_instance_parser.add_argument('--key', '-i', type=str, default='')
-
-	from manec2.instances.command import add_instances_command
-	add_instance_parser = subparsers.add_parser('add', help=None)
-	add_instance_parser.set_defaults(command=add_instances_command)
-	add_instance_parser.add_argument('--ctx', type=str, default=None)
-	add_instance_parser.add_argument('--ids', type=str, nargs='+')
-	add_instance_parser.add_argument('--user', '-u', type=str, default='')
-	add_instance_parser.add_argument('--key', '-i', type=str, default='')
 
 	from manec2.instances.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
@@ -119,13 +115,13 @@ def add_arguments(parser):
 
 
 ## Commands that interact with AWS infrastructure
+def get_contexts_command(options):
+	from .instance import get_contexts
+	get_contexts(options)
+
 def create_instances_command(options):
 	from .instance import create_instances
 	create_instances(options)
-
-def add_instances_command(options):
-	from .instance import add_instances
-	add_instances(options)
 
 def terminate_instances_command(options):
 	from .instance import terminate_instances
@@ -142,10 +138,6 @@ def stop_instances_command(options):
 def reboot_instances_command(options):
 	from .instance import reboot_instances
 	reboot_instances(options)
-
-def update_instance_info_command(options):
-	from .instance import call_update_instance_info
-	call_update_instance_info(options)
 
 def info_instances_command(options):
 	from .instance import get_instance_info
