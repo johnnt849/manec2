@@ -63,13 +63,6 @@ def add_arguments(parser):
 	info_instance_parser.add_argument('--state', action='store_true')
 	info_instance_parser.add_argument('--text', action='store_true')
 
-	from manec2.instances.command import update_instance_info_command
-	update_instance_parser = subparsers.add_parser('update', help=None)
-	update_instance_parser.set_defaults(command=update_instance_info_command)
-	update_instance_parser.add_argument('--ctx', type=str, default='all')
-	update_instance_parser.add_argument('--user', '-u', type=str, default='')
-	update_instance_parser.add_argument('--key', '-i', type=str, default='')
-
 	from manec2.instances.command import ssh_instance_command
 	ssh_instance_parser = subparsers.add_parser('ssh', help=None)
 	ssh_instance_parser.set_defaults(command=ssh_instance_command)
