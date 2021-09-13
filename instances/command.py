@@ -24,35 +24,35 @@ def add_arguments(parser):
 	from manec2.instances.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
 	terminate_instance_parser.set_defaults(command=terminate_instances_command)
-	terminate_instance_parser.add_argument('ctx', type=str, default=None)
+	terminate_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	terminate_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 										default=-1)
 
 	from manec2.instances.command import start_instances_command
 	start_instance_parser = subparsers.add_parser('start', help=None)
 	start_instance_parser.set_defaults(command=start_instances_command)
-	start_instance_parser.add_argument('ctx', type=str, default=None)
+	start_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	start_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									   default=-1)
 
 	from manec2.instances.command import stop_instances_command
 	stop_instance_parser = subparsers.add_parser('stop', help=None)
 	stop_instance_parser.set_defaults(command=stop_instances_command)
-	stop_instance_parser.add_argument('ctx', type=str, default=None)
+	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
 
 	from manec2.instances.command import reboot_instances_command
 	stop_instance_parser = subparsers.add_parser('reboot', help=None)
 	stop_instance_parser.set_defaults(command=reboot_instances_command)
-	stop_instance_parser.add_argument('ctx', type=str, default=None)
+	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
 
 	from manec2.instances.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
 	info_instance_parser.set_defaults(command=info_instances_command)
-	info_instance_parser.add_argument('ctx', type=str, default='all')
+	info_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	info_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
 	info_instance_parser.add_argument('--pubip', action='store_true')

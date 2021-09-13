@@ -152,55 +152,59 @@ def create_instances(options):
 	time.sleep(1)
 
 def terminate_instances(options):
-	current_instances = query_ctx_instance_info(options.ctx)
+	for ctx in options.ctx:
+		current_instances = query_ctx_instance_info(ctx)
 
-	ec2_cli = boto3.client('ec2')
-	msg = f"Are you sure you want to terminate " + \
-		f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
-		+ f"in context '{options.ctx}'?\nType 'terminate' to confirm\n"
-	confirm = input(msg)
+		ec2_cli = boto3.client('ec2')
+		msg = f"Are you sure you want to terminate " + \
+			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
+			+ f"in context '{options.ctx}'?\nType 'terminate' to confirm\n"
+		confirm = input(msg)
 
-	if confirm != 'terminate':
-		return
+		if confirm != 'terminate':
+			return
 
-	instance_ids = [inst.id for inst in current_instances] if options.indices == -1 \
-		else [current_instances[i].id for i in options.indices]
-	if options.indices != -1:
-		ec2_cli.terminate_instances(InstanceIds=instance_ids)
-		print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
-	else:
-		ec2_cli.terminate_instances(InstanceIds=instance_ids)
-		print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
+		instance_ids = [inst.id for inst in current_instances] if options.indices == -1 \
+			else [current_instances[i].id for i in options.indices]
+		if options.indices != -1:
+			ec2_cli.terminate_instances(InstanceIds=instance_ids)
+			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
+		else:
+			ec2_cli.terminate_instances(InstanceIds=instance_ids)
+			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
 
 def start_instances(options):
-	current_instances = query_ctx_instance_info(options.ctx)
-	ec2_cli = boto3.client('ec2')
-	instance_ids = [inst.id for inst in current_instances]
-	if options.indices != -1:
-		instance_ids = [instance_ids[i] for i in options.indices]
+	for ctx in options.ctx:
+		current_instances = query_ctx_instance_info(ctx)
+		ec2_cli = boto3.client('ec2')
+		instance_ids = [inst.id for inst in current_instances]
+		if options.indices != -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
-	ec2_cli.start_instances(InstanceIds=instance_ids)
-	print("Starting instances", ", ".join([str(id) for id in instance_ids]))
+		ec2_cli.start_instances(InstanceIds=instance_ids)
+		print(f"Starting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def stop_instances(options):
-	current_instances = query_ctx_instance_info(options.ctx)
-	ec2_cli = boto3.client('ec2')
-	instance_ids = [inst.id for inst in current_instances]
-	if options.indices != -1:
-		instance_ids = [instance_ids[i] for i in options.indices]
+	for ctx in options.ctx:
+		current_instances = query_ctx_instance_info(ctx)
+		ec2_cli = boto3.client('ec2')
+		instance_ids = [inst.id for inst in current_instances]
+		if options.indices != -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
-	ec2_cli.stop_instances(InstanceIds=instance_ids)
-	print("Stopping instances", ", ".join([str(id) for id in instance_ids]))
+		ec2_cli.stop_instances(InstanceIds=instance_ids)
+		print(f"Stopping '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def reboot_instances(options):
-	current_instances = query_ctx_instance_info(options.ctx)
-	ec2_cli = boto3.client('ec2')
-	instance_ids = [inst.id for inst in current_instances]
-	if options.indices!= -1:
-		instance_ids = [instance_ids[i] for i in options.indices]
+	for ctx in options.ctx:
+		current_instances = query_ctx_instance_info(ctx)
+		ec2_cli = boto3.client('ec2')
+		instance_ids = [inst.id for inst in current_instances]
+		if options.indices!= -1:
+			instance_ids = [instance_ids[i] for i in options.indices]
 
-	ec2_cli.reboot_instances(InstanceIds=instance_ids)
-	print("Rebooting instances", ", ".join([str(id) for id in instance_ids]))
+		ec2_cli.reboot_instances(InstanceIds=instance_ids)
+		print(f"Rebooting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def print_full_info(indices, ctx, instance_info):
 	print(str(len(instance_info)) + " instances:")
@@ -210,37 +214,40 @@ def print_full_info(indices, ctx, instance_info):
 			inst.placement, inst.pr_ip, inst.last_observed_state))
 
 def get_instance_info(options):
-	current_instances = query_ctx_instance_info(options.ctx)
-	if len(current_instances) == 0:
-		print(f"Context '{options.ctx}' has no live instances")
-		return
+	for i, ctx in enumerate(options.ctx):
+		current_instances = query_ctx_instance_info(ctx)
+		if len(current_instances) == 0:
+			print(f"Context '{ctx}' has no live instances")
+			return
 
-	ctx = options.ctx
-	if not options.text:
-		print("Context '" + ctx + "'")
-	indices = range(len(current_instances)) if options.indices == -1 else options.indices
-	for ind in indices:
-		inst = current_instances[ind]
+		if not options.text:
+			print("Context '" + ctx + "'")
+		indices = range(len(current_instances)) if options.indices == -1 else options.indices
+		for ind in indices:
+			inst = current_instances[ind]
 
-		msg = ''
-		if options.pubip:
-			msg = inst.pub_ip
-		elif options.dns:
-			msg = inst.dns
-		elif options.prip:
-			msg = inst.pr_ip
-		elif options.type:
-			msg = inst.type
-		elif options.zone:
-			msg = inst.placement
-		elif options.state:
-			msg = inst.last_observed_state
-		else:
-			print_full_info(indices, ctx, current_instances)
-			break
+			msg = ''
+			if options.pubip:
+				msg = inst.pub_ip
+			elif options.dns:
+				msg = inst.dns
+			elif options.prip:
+				msg = inst.pr_ip
+			elif options.type:
+				msg = inst.type
+			elif options.zone:
+				msg = inst.placement
+			elif options.state:
+				msg = inst.last_observed_state
+			else:
+				print_full_info(indices, ctx, current_instances)
+				break
 
-		msg = msg if options.text else "  ".join(["", str(ind), msg])
-		print(msg)
+			msg = msg if options.text else "  ".join(["", str(ind), msg])
+			print(msg)
+
+		if i < len(options.ctx) - 1:
+			print()
 
 def ssh_to_instance(options):
 	current_instances = query_ctx_instance_info(options.ctx)
@@ -389,7 +396,6 @@ def scp_instance(options):
 		remote_access_opts = ['-i', ssh_key]
 
 	scp_cmd = ['scp'] + remote_access_opts
-	print(len(current_instances))
 	for inst in current_instances:
 		if options.put:
 			scp_cmd = scp_cmd + [options.file, ssh_user + '@' + inst.dns + ':' + options.location]
