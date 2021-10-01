@@ -11,6 +11,8 @@ def parse(args):
 	parser = argparse.ArgumentParser(prog='manec2',
 					description='EC2 Instance Manager')
 
+	subparsers = parser.add_subparsers(metavar='command', dest='command_name')
+
 	# Only one module but extensible in the future
 	for module_info in pkgutil.iter_modules(manec2.__path__):
 		if not module_info.ispkg:
@@ -21,6 +23,7 @@ def parse(args):
 		except ModuleNotFoundError as e:
 			continue
 
-	module.add_arguments(parser)
+		subparser = subparsers.add_parser(module_info.name, help=module.HELP)
+		module.add_arguments(subparser)
 
 	return parser.parse_args(args)

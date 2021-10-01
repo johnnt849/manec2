@@ -5,12 +5,11 @@ import time
 import subprocess
 
 import manec2
-from manec2.instances import INSTANCE_CACHE_DIR, INSTANCE_CACHE_FILE
-from manec2.instances.instance_type import Instance, deserialize
+from manec2.ec2.instance_type import Instance
 
 
-def query_ctx_instance_info(ctx, ssh_user='ubuntu', ssh_key='~/.ssh/virginia.pem'):
-	ec2_cli = boto3.client('ec2')
+def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/virginia.pem'):
+	ec2_cli = boto3.client('ec2', region_name=region)
 	response = ec2_cli.describe_instances(
 		Filters=[
 			{
@@ -44,32 +43,32 @@ def query_ctx_instance_info(ctx, ssh_user='ubuntu', ssh_key='~/.ssh/virginia.pem
 	instances.sort(key=lambda x : x.id)
 	return instances
 
-def update_instance_info(instance_ids, ssh_user, ssh_key):
-	ec2_cli = boto3.client('ec2')
-	response = ec2_cli.describe_instances(InstanceIds=instance_ids)
-	instances = []
-	for res in response['Reservations']:
-		for inst in res['Instances']:
-			inst_id = inst['InstanceId']
-			inst_type = inst['InstanceType']
-			inst_place = inst['Placement']['AvailabilityZone']
-			state = inst['State']['Name']
-			prip = '0'
-			pubip = '0'
-			dns = '0'
-			if state != 'terminated':
-				prip = inst['PrivateIpAddress']
-			if state ==  'running':
-				pubip = inst['PublicIpAddress']
-				dns = inst['PublicDnsName']
-			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip,
-				dns, state, ssh_user, ssh_key))
-
-	instances.sort(key=lambda x : x.id)
-	return instances
+#def update_instance_info(instance_ids, ssh_user, ssh_key):
+#	ec2_cli = boto3.client('ec2', region_name=options.region)
+#	response = ec2_cli.describe_instances(InstanceIds=instance_ids)
+#	instances = []
+#	for res in response['Reservations']:
+#		for inst in res['Instances']:
+#			inst_id = inst['InstanceId']
+#			inst_type = inst['InstanceType']
+#			inst_place = inst['Placement']['AvailabilityZone']
+#			state = inst['State']['Name']
+#			prip = '0'
+#			pubip = '0'
+#			dns = '0'
+#			if state != 'terminated':
+#				prip = inst['PrivateIpAddress']
+#			if state ==  'running':
+#				pubip = inst['PublicIpAddress']
+#				dns = inst['PublicDnsName']
+#			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip,
+#				dns, state, ssh_user, ssh_key))
+#
+#	instances.sort(key=lambda x : x.id)
+#	return instances
 
 def get_contexts(options):
-	ec2_cli = boto3.client('ec2')
+	ec2_cli = boto3.client('ec2', region_name=options.region)
 	response = ec2_cli.describe_instances(
 		Filters=[
 			{
@@ -96,7 +95,7 @@ def create_instances(options):
 		print("Context name 'all' is reserved. Choose another name")
 		exit(17)
 
-	ec2 = boto3.resource('ec2')
+	ec2 = boto3.resource('ec2', region_name=options.region)
 
 	if options.ami == None:
 		print("Please provide an AMI")
@@ -107,7 +106,6 @@ def create_instances(options):
 		'InstanceType': options.type,
 		'MinCount': options.cnt,
 		'MaxCount': options.cnt,
-		'SecurityGroupIds': ['sg-098524cf5a5d0011f'],
 		'TagSpecifications': [
 			{
 				'ResourceType': 'instance',
@@ -124,10 +122,15 @@ def create_instances(options):
 	if options.type != 't2.micro':
 		args['EbsOptimized'] = True
 
+	if options.region == 'us-east-1':
+		args['SecurityGroupIds'] = ['sg-098524cf5a5d0011f']
+	elif options.region == 'us-east-2':
+		args['SecurityGroupIds'] = ['sg-0a98f6952f8c78610']
+	elif options.region == 'us-west-2':
+		args['SecurityGroupIds'] = ['sg-087e10932df344958']
+	
 	if options.az != None:
 		args['Placement'] = { 'AvailabilityZone': options.az }
-		if options.az[:-1] == 'us-east-2':
-			args['SecurityGroupIds'] = ['sg-0a98f6952f8c78610']
 
 	if options.pg != None:
 		if 'Placement' not in args:
@@ -153,9 +156,9 @@ def create_instances(options):
 
 def terminate_instances(options):
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(ctx)
+		current_instances = query_ctx_instance_info(options.region, ctx)
 
-		ec2_cli = boto3.client('ec2')
+		ec2_cli = boto3.client('ec2', region_name=options.region)
 		msg = f"Are you sure you want to terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
 			+ f"in context '{options.ctx}'?\nType 'terminate' to confirm\n"
@@ -175,8 +178,8 @@ def terminate_instances(options):
 
 def start_instances(options):
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(ctx)
-		ec2_cli = boto3.client('ec2')
+		current_instances = query_ctx_instance_info(options.region, ctx)
+		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -186,8 +189,8 @@ def start_instances(options):
 
 def stop_instances(options):
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(ctx)
-		ec2_cli = boto3.client('ec2')
+		current_instances = query_ctx_instance_info(options.region, ctx)
+		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -197,8 +200,8 @@ def stop_instances(options):
 
 def reboot_instances(options):
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(ctx)
-		ec2_cli = boto3.client('ec2')
+		current_instances = query_ctx_instance_info(options.region, ctx)
+		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices!= -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -215,7 +218,7 @@ def print_full_info(indices, ctx, instance_info):
 
 def get_instance_info(options):
 	for i, ctx in enumerate(options.ctx):
-		current_instances = query_ctx_instance_info(ctx)
+		current_instances = query_ctx_instance_info(options.region, ctx)
 		if len(current_instances) == 0:
 			print(f"Context '{ctx}' has no live instances")
 			return
@@ -250,7 +253,7 @@ def get_instance_info(options):
 			print()
 
 def ssh_to_instance(options):
-	current_instances = query_ctx_instance_info(options.ctx)
+	current_instances = query_ctx_instance_info(options.region, options.ctx)
 
 	if options.all:
 		## Filter for instances that are currently running
@@ -298,7 +301,7 @@ def ssh_to_instance(options):
 			proc.wait()
 
 def rsync_instance(options):
-	current_instances = query_ctx_instance_info(options.ctx)
+	current_instances = query_ctx_instance_info(options.region, options.ctx)
 	if options.indices == -1:
 		current_instances = [inst for inst in current_instances \
 							if inst.last_observed_state == 'running']
@@ -364,7 +367,7 @@ def rsync_instance(options):
 			proc.wait()
 
 def scp_instance(options):
-	current_instances = query_ctx_instance_info(options.ctx)
+	current_instances = query_ctx_instance_info(options.region, options.ctx)
 	if options.indices == -1:
 		current_instances = [inst for inst in current_instances \
 							if inst.last_observed_state == 'running']

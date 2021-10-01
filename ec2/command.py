@@ -3,12 +3,13 @@ HELP = None
 
 def add_arguments(parser):
 	subparsers = parser.add_subparsers(metavar='command')
+	parser.add_argument('--region', '-r', type=str, default='us-east-1')
 
-	from manec2.instances.command import get_contexts_command
+	from manec2.ec2.command import get_contexts_command
 	get_contexts_parser = subparsers.add_parser('contexts', help=None)
 	get_contexts_parser.set_defaults(command=get_contexts_command)
 
-	from manec2.instances.command import create_instances_command
+	from manec2.ec2.command import create_instances_command
 	create_instance_parser = subparsers.add_parser('create', help=None)
 	create_instance_parser.set_defaults(command=create_instances_command)
 	create_instance_parser.add_argument('--ctx', type=str, default=None)
@@ -21,35 +22,35 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--user', '-u', type=str, default='')
 	create_instance_parser.add_argument('--key', '-i', type=str, default='')
 
-	from manec2.instances.command import terminate_instances_command
+	from manec2.ec2.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
 	terminate_instance_parser.set_defaults(command=terminate_instances_command)
 	terminate_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	terminate_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 										default=-1)
 
-	from manec2.instances.command import start_instances_command
+	from manec2.ec2.command import start_instances_command
 	start_instance_parser = subparsers.add_parser('start', help=None)
 	start_instance_parser.set_defaults(command=start_instances_command)
 	start_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	start_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									   default=-1)
 
-	from manec2.instances.command import stop_instances_command
+	from manec2.ec2.command import stop_instances_command
 	stop_instance_parser = subparsers.add_parser('stop', help=None)
 	stop_instance_parser.set_defaults(command=stop_instances_command)
 	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
 
-	from manec2.instances.command import reboot_instances_command
+	from manec2.ec2.command import reboot_instances_command
 	stop_instance_parser = subparsers.add_parser('reboot', help=None)
 	stop_instance_parser.set_defaults(command=reboot_instances_command)
 	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
 
-	from manec2.instances.command import info_instances_command
+	from manec2.ec2.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
 	info_instance_parser.set_defaults(command=info_instances_command)
 	info_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
@@ -63,7 +64,7 @@ def add_arguments(parser):
 	info_instance_parser.add_argument('--state', action='store_true')
 	info_instance_parser.add_argument('--text', action='store_true')
 
-	from manec2.instances.command import ssh_instance_command
+	from manec2.ec2.command import ssh_instance_command
 	ssh_instance_parser = subparsers.add_parser('ssh', help=None)
 	ssh_instance_parser.set_defaults(command=ssh_instance_command)
 	ssh_instance_parser.add_argument('ctx', type=str, default=None)
@@ -78,7 +79,7 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	ssh_instance_parser.add_argument('--sudo', '-s', action='store_true')
 
-	from manec2.instances.command import rsync_instance_command
+	from manec2.ec2.command import rsync_instance_command
 	rsync_instance_parser = subparsers.add_parser('rsync', help=None)
 	rsync_instance_parser.set_defaults(command=rsync_instance_command)
 	rsync_instance_parser.add_argument('ctx', type=str, default='')
@@ -93,7 +94,7 @@ def add_arguments(parser):
 	rsync_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	rsync_instance_parser.add_argument('--force', action='store_true')
 
-	from manec2.instances.command import scp_instance_command
+	from manec2.ec2.command import scp_instance_command
 	scp_instance_parser = subparsers.add_parser('scp', help=None)
 	scp_instance_parser.set_defaults(command=scp_instance_command)
 	scp_instance_parser.add_argument('ctx', type=str, default='')
