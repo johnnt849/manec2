@@ -43,30 +43,6 @@ def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/virg
 	instances.sort(key=lambda x : x.id)
 	return instances
 
-#def update_instance_info(instance_ids, ssh_user, ssh_key):
-#	ec2_cli = boto3.client('ec2', region_name=options.region)
-#	response = ec2_cli.describe_instances(InstanceIds=instance_ids)
-#	instances = []
-#	for res in response['Reservations']:
-#		for inst in res['Instances']:
-#			inst_id = inst['InstanceId']
-#			inst_type = inst['InstanceType']
-#			inst_place = inst['Placement']['AvailabilityZone']
-#			state = inst['State']['Name']
-#			prip = '0'
-#			pubip = '0'
-#			dns = '0'
-#			if state != 'terminated':
-#				prip = inst['PrivateIpAddress']
-#			if state ==  'running':
-#				pubip = inst['PublicIpAddress']
-#				dns = inst['PublicDnsName']
-#			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip,
-#				dns, state, ssh_user, ssh_key))
-#
-#	instances.sort(key=lambda x : x.id)
-#	return instances
-
 def get_contexts(options):
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 	response = ec2_cli.describe_instances(
@@ -97,6 +73,16 @@ def create_instances(options):
 
 	ec2 = boto3.resource('ec2', region_name=options.region)
 
+	if options.json:
+		launch_params = json.load(open(options.json, 'r'))
+		print(f'Launching with args {launch_params}')
+
+		response = ec2.create_instances(**launch_params)
+		instance_ids = [inst.id for inst in response]
+		print("Created instances", instance_ids)
+
+		return
+
 	if options.ami == None:
 		print("Please provide an AMI")
 		exit(13)
@@ -106,6 +92,7 @@ def create_instances(options):
 		'InstanceType': options.type,
 		'MinCount': options.cnt,
 		'MaxCount': options.cnt,
+		'KeyName': options.key_pair,
 		'TagSpecifications': [
 			{
 				'ResourceType': 'instance',
@@ -152,7 +139,6 @@ def create_instances(options):
 	response = ec2.create_instances(**args)
 	instance_ids = [inst.id for inst in response]
 	print("Created instances", instance_ids)
-	time.sleep(1)
 
 def terminate_instances(options):
 	for ctx in options.ctx:
@@ -398,8 +384,8 @@ def scp_instance(options):
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
 
-	scp_cmd = ['scp'] + remote_access_opts
-	for inst in current_instances:
+	for i, inst in enumerate(current_instances):
+		scp_cmd = ['scp'] + remote_access_opts
 		if options.put:
 			scp_cmd = scp_cmd + [options.file, ssh_user + '@' + inst.dns + ':' + options.location]
 		elif options.get:

@@ -3,7 +3,7 @@ HELP = None
 
 def add_arguments(parser):
 	subparsers = parser.add_subparsers(metavar='command')
-	parser.add_argument('--region', '-r', type=str, default='us-east-1')
+	parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.ec2.command import get_contexts_command
 	get_contexts_parser = subparsers.add_parser('contexts', help=None)
@@ -13,6 +13,10 @@ def add_arguments(parser):
 	create_instance_parser = subparsers.add_parser('create', help=None)
 	create_instance_parser.set_defaults(command=create_instances_command)
 	create_instance_parser.add_argument('--ctx', type=str, default=None)
+
+	## Overrides any other specifications
+	create_instance_parser.add_argument('--json', type=str, default=None)
+
 	create_instance_parser.add_argument('--ami', type=str, default=None)
 	create_instance_parser.add_argument('--type', type=str, default='t2.micro')
 	create_instance_parser.add_argument('--cnt', type=int, default=1)
@@ -20,7 +24,10 @@ def add_arguments(parser):
 	create_instance_parser.add_argument('--pg', type=str, default=None)
 	create_instance_parser.add_argument('--spot', action='store_true')
 	create_instance_parser.add_argument('--user', '-u', type=str, default='')
-	create_instance_parser.add_argument('--key', '-i', type=str, default='')
+	create_instance_parser.add_argument('--key-pair', '-k', type=str, default='')
+
+	create_instance_parser.add_argument('--incremental', '-inc', action='store_true',
+										default=False)
 
 	from manec2.ec2.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
@@ -101,8 +108,8 @@ def add_arguments(parser):
 	scp_instance_parser.add_argument('file', type=str, default=None)
 	scp_instance_parser.add_argument('--user', '-u', type=str, default='')
 	scp_instance_parser.add_argument('--key', '-i', type=str, default='')
-	scp_instance_parser.add_argument('--get', action='store_true')
-	scp_instance_parser.add_argument('--put', action='store_true')
+	scp_instance_parser.add_argument('--get', action='store_true', default=False)
+	scp_instance_parser.add_argument('--put', action='store_true', default=False)
 	scp_instance_parser.add_argument('--location', '-l', type=str, default='.')
 	scp_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=-1)
