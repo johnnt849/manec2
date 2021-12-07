@@ -4,11 +4,13 @@ import os
 import time
 import subprocess
 
+from colorama import Fore
+
 import manec2
-from manec2.ec2.instance_type import Instance
+from manec2.utils.instance_type import Instance
 
 
-def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/virginia.pem'):
+def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/oregon.pem'):
 	ec2_cli = boto3.client('ec2', region_name=region)
 	response = ec2_cli.describe_instances(
 		Filters=[
@@ -145,9 +147,9 @@ def terminate_instances(options):
 		current_instances = query_ctx_instance_info(options.region, ctx)
 
 		ec2_cli = boto3.client('ec2', region_name=options.region)
-		msg = f"Are you sure you want to terminate " + \
+		msg = f"Are you sure you want to " + Fore.LIGHTRED_EX + "terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
-			+ f"in context '{options.ctx}'?\nType 'terminate' to confirm\n"
+			+ Fore.RESET + f"in context '{options.ctx}'?\nType '" + Fore.RED + "terminate" + Fore.RESET + "' to confirm\n"
 		confirm = input(msg)
 
 		if confirm != 'terminate':
@@ -384,11 +386,18 @@ def scp_instance(options):
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
 
+	scp_cmd = ['scp'] + remote_access_opts
+	processes = []
 	for i, inst in enumerate(current_instances):
-		scp_cmd = ['scp'] + remote_access_opts
 		if options.put:
 			scp_cmd = scp_cmd + [options.file, ssh_user + '@' + inst.dns + ':' + options.location]
 		elif options.get:
 			scp_cmd = scp_cmd + [ssh_user + '@' + inst.dns + ':' + options.file, options.location]
 
-		subprocess.run(scp_cmd)
+		if options.parallel:
+			processes.append(subprocess.Popen(scp_cmd))
+		else:
+			subprocess.run(scp_cmd)
+
+	for proc in processes:
+		proc.wait()

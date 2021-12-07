@@ -113,6 +113,7 @@ def add_arguments(parser):
 	scp_instance_parser.add_argument('--location', '-l', type=str, default='.')
 	scp_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=-1)
+	scp_instance_parser.add_argument('--parallel', '-p', action='store_true')
 
 
 ## Commands that interact with AWS infrastructure
