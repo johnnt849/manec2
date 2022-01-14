@@ -10,7 +10,7 @@ import manec2
 from manec2.utils.instance_type import Instance
 
 
-def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/oregon.pem'):
+def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/john.pem'):
 	ec2_cli = boto3.client('ec2', region_name=region)
 	response = ec2_cli.describe_instances(
 		Filters=[

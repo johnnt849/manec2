@@ -32,6 +32,21 @@ def add_arguments(parser):
 	scale_group_parser.add_argument('auto_scaling_group_name', type=str)
 	scale_group_parser.add_argument('--size', '-s', type=int, default=None)
 
+	from manec2.asg.command import rsync_command
+	rsync_parser = subparsers.add_parser('rsync', help=None)
+	rsync_parser.set_defaults(command=rsync_command)
+	rsync_parser.add_argument('auto_scaling_group_name', type=str)
+	rsync_parser.add_argument('--user', '-u', type=str, default='')
+	rsync_parser.add_argument('--key', '-i', type=str, default='')
+	rsync_parser.add_argument('--exclude', '-e', nargs='+', type=str,
+								default='')
+	rsync_parser.add_argument('--file', '-f', type=str, default=None)
+	rsync_parser.add_argument('--location', '-l', type=str, default=None)
+	rsync_parser.add_argument('--indices', '-ids', nargs='+', type=int,
+								default=-1)
+	rsync_parser.add_argument('--parallel', '-p', action='store_true')
+	rsync_parser.add_argument('--force', action='store_true')
+
 ## Commands that interact with AWS infrastructure
 def list_command(options):
 	from .asg import list_groups
@@ -48,3 +63,7 @@ def scale_group_command(options):
 def group_info_command(options):
 	from .asg import group_info
 	group_info(options)
+
+def rsync_command(options):
+	from .asg import rsync_group_command
+	rsync_group_command(options)
