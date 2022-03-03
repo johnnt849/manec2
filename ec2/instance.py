@@ -275,14 +275,33 @@ def ssh_to_instance(options):
 
 	processes = []
 	for inst in current_instances:
-		ssh_command = ['ssh'] + remote_access_opts \
+		ssh_command_base = ['ssh'] + remote_access_opts \
 			+ [ssh_user + '@' + inst.dns] \
+
+		ssh_command_test = ssh_command_base \
+			+ ['exit']
+
+		ssh_command_final = ssh_command_base \
 			+ options.comm.split()
 
+		if options.wait:
+			trials = 0
+			while True:
+				try:
+					subprocess.run(ssh_command_test, timeout=5)
+					break
+				except subprocess.TimeoutExpired:
+					time.sleep(3)
+					trials += 1
+
+					if trials > 20:
+						print(f'Tried to access instances {inst.id} SSH 20 times. Failing...')
+						exit(15)
+
 		if options.parallel:
-			processes.append(subprocess.Popen(ssh_command))
+			processes.append(subprocess.Popen(ssh_command_final))
 		else:
-			subprocess.run(ssh_command)
+			subprocess.run(ssh_command_final)
 
 	if options.parallel:
 		for proc in processes:

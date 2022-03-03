@@ -85,6 +85,7 @@ def add_arguments(parser):
 
 	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	ssh_instance_parser.add_argument('--sudo', '-s', action='store_true')
+	ssh_instance_parser.add_argument('--wait', '-w', action='store_true')
 
 	from manec2.ec2.command import rsync_instance_command
 	rsync_instance_parser = subparsers.add_parser('rsync', help=None)
