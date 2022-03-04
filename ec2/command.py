@@ -3,11 +3,11 @@ HELP = None
 
 def add_arguments(parser):
 	subparsers = parser.add_subparsers(metavar='command')
-	parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.ec2.command import get_contexts_command
 	get_contexts_parser = subparsers.add_parser('contexts', help=None)
 	get_contexts_parser.set_defaults(command=get_contexts_command)
+	get_contexts_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import create_instances_command
 	create_instance_parser = subparsers.add_parser('create', help=None)
@@ -28,6 +28,7 @@ def add_arguments(parser):
 
 	create_instance_parser.add_argument('--incremental', '-inc', action='store_true',
 										default=False)
+	create_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import terminate_instances_command
 	terminate_instance_parser = subparsers.add_parser('terminate', help=None)
@@ -35,6 +36,7 @@ def add_arguments(parser):
 	terminate_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	terminate_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 										default=-1)
+	terminate_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import start_instances_command
 	start_instance_parser = subparsers.add_parser('start', help=None)
@@ -42,6 +44,7 @@ def add_arguments(parser):
 	start_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	start_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									   default=-1)
+	start_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import stop_instances_command
 	stop_instance_parser = subparsers.add_parser('stop', help=None)
@@ -49,13 +52,15 @@ def add_arguments(parser):
 	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
 	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									  default=-1)
+	stop_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import reboot_instances_command
-	stop_instance_parser = subparsers.add_parser('reboot', help=None)
-	stop_instance_parser.set_defaults(command=reboot_instances_command)
-	stop_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
-	stop_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
-									  default=-1)
+	reboot_instance_parser = subparsers.add_parser('reboot', help=None)
+	reboot_instance_parser.set_defaults(command=reboot_instances_command)
+	reboot_instance_parser.add_argument('ctx', type=str, nargs='+', default=None)
+	reboot_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
+										default=-1)
+	reboot_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
@@ -70,6 +75,7 @@ def add_arguments(parser):
 	info_instance_parser.add_argument('--zone', action='store_true')
 	info_instance_parser.add_argument('--state', action='store_true')
 	info_instance_parser.add_argument('--text', action='store_true')
+	info_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import ssh_instance_command
 	ssh_instance_parser = subparsers.add_parser('ssh', help=None)
@@ -86,6 +92,7 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	ssh_instance_parser.add_argument('--sudo', '-s', action='store_true')
 	ssh_instance_parser.add_argument('--wait', '-w', action='store_true')
+	ssh_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import rsync_instance_command
 	rsync_instance_parser = subparsers.add_parser('rsync', help=None)
@@ -101,6 +108,7 @@ def add_arguments(parser):
 									   default=-1)
 	rsync_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	rsync_instance_parser.add_argument('--force', action='store_true')
+	rsync_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 	from manec2.ec2.command import scp_instance_command
 	scp_instance_parser = subparsers.add_parser('scp', help=None)
@@ -115,6 +123,7 @@ def add_arguments(parser):
 	scp_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=-1)
 	scp_instance_parser.add_argument('--parallel', '-p', action='store_true')
+	scp_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
 
 ## Commands that interact with AWS infrastructure

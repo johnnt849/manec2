@@ -3,16 +3,17 @@ HELP = None
 
 def add_arguments(parser):
 	subparsers = parser.add_subparsers(metavar='command')
-	parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.asg.command import list_command
 	list_groups_parser = subparsers.add_parser('list', help=None)
 	list_groups_parser.set_defaults(command=list_command)
+	list_groups_parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.asg.command import group_info_command
 	info_parser = subparsers.add_parser('info', help=None)
 	info_parser.set_defaults(command=group_info_command)
 	info_parser.add_argument('auto_scaling_group_names', type=str, nargs='+')
+	info_parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.asg.command import ssh_instance_command
 	ssh_instance_parser = subparsers.add_parser('ssh', help=None)
@@ -25,12 +26,14 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
 	ssh_instance_parser.add_argument('--comm', '-c', type=str, default='')
 	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
+	ssh_instance_parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.asg.command import scale_group_command
 	scale_group_parser = subparsers.add_parser('scale', help=None)
 	scale_group_parser.set_defaults(command=scale_group_command)
 	scale_group_parser.add_argument('auto_scaling_group_name', type=str)
 	scale_group_parser.add_argument('--size', '-s', type=int, default=None)
+	scale_group_parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 	from manec2.asg.command import rsync_command
 	rsync_parser = subparsers.add_parser('rsync', help=None)
@@ -46,6 +49,7 @@ def add_arguments(parser):
 								default=-1)
 	rsync_parser.add_argument('--parallel', '-p', action='store_true')
 	rsync_parser.add_argument('--force', action='store_true')
+	rsync_parser.add_argument('--region', '-r', type=str, default='us-west-2')
 
 ## Commands that interact with AWS infrastructure
 def list_command(options):
