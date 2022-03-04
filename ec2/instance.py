@@ -288,7 +288,10 @@ def ssh_to_instance(options):
 			trials = 0
 			while True:
 				try:
-					subprocess.run(ssh_command_test, timeout=5)
+					result = subprocess.run(ssh_command_test, timeout=5, stderr=subprocess.PIPE)
+					output = result.stderr.decode('utf-8')
+					if 'Connection refused' in output:
+						raise subprocess.TimeoutExpired(ssh_command_test, timeout=5)
 					break
 				except subprocess.TimeoutExpired:
 					time.sleep(3)
@@ -297,6 +300,9 @@ def ssh_to_instance(options):
 					if trials > 20:
 						print(f'Tried to access instances {inst.id} SSH 20 times. Failing...')
 						exit(15)
+
+					if trials % 3 == 0:
+						print(f'Connection timed out. Retrying...')
 
 		if options.parallel:
 			processes.append(subprocess.Popen(ssh_command_final))
