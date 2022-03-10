@@ -240,6 +240,16 @@ def get_instance_info(options):
 		if i < len(options.ctx) - 1:
 			print()
 
+def _ssh_failure(inst, trials):
+	time.sleep(3)
+
+	if trials > 20:
+		print(f'Tried to access instances {inst.id} SSH 20 times. Failing...')
+		exit(15)
+
+	if trials % 3 == 0:
+		print(f'Connection timed out. Retrying...')
+
 def ssh_to_instance(options):
 	current_instances = query_ctx_instance_info(options.region, options.ctx)
 
@@ -288,21 +298,15 @@ def ssh_to_instance(options):
 			trials = 0
 			while True:
 				try:
-					result = subprocess.run(ssh_command_test, timeout=5, stderr=subprocess.PIPE)
-					output = result.stderr.decode('utf-8')
-					if 'Connection refused' in output:
-						raise subprocess.TimeoutExpired(ssh_command_test, timeout=5)
-					break
+					retcode = subprocess.run(ssh_command_test, timeout=5).returncode
+					if retcode != 0:
+						_ssh_failure(inst, trials)
+					else:
+						break
 				except subprocess.TimeoutExpired:
-					time.sleep(3)
-					trials += 1
+					_ssh_failure(inst, trials)
 
-					if trials > 20:
-						print(f'Tried to access instances {inst.id} SSH 20 times. Failing...')
-						exit(15)
-
-					if trials % 3 == 0:
-						print(f'Connection timed out. Retrying...')
+				trials +=1
 
 		if options.parallel:
 			processes.append(subprocess.Popen(ssh_command_final))
