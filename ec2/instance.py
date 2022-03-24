@@ -149,7 +149,7 @@ def terminate_instances(options):
 		ec2_cli = boto3.client('ec2', region_name=options.region)
 		msg = f"Are you sure you want to " + Fore.LIGHTRED_EX + "terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
-			+ Fore.RESET + f"in context '{options.ctx}'?\nType '" + Fore.RED + "terminate" + Fore.RESET + "' to confirm\n"
+			+ Fore.RESET + f"in context '{ctx}'?\nType '" + Fore.RED + "terminate" + Fore.RESET + "' to confirm\n"
 		confirm = input(msg)
 
 		if confirm != 'terminate':
