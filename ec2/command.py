@@ -83,7 +83,7 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('ctx', type=str, default=None)
 	ssh_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=[0])
-	ssh_instance_parser.add_argument('--all', action='store_true')
+	ssh_instance_parser.add_argument('--all', '-a', action='store_true')
 
 	ssh_instance_parser.add_argument('--user', '-u', type=str, default='')
 	ssh_instance_parser.add_argument('--key', '-i', type=str, default='')
