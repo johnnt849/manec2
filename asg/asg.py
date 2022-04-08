@@ -85,6 +85,51 @@ def ssh_command(options):
 	for proc in processes:
 		proc.wait()
 
+def scp_command(options):
+	asg = boto3.client('autoscaling')
+	asg_response = asg.describe_auto_scaling_groups(
+		AutoScalingGroupNames=[options.auto_scaling_group_name])['AutoScalingGroups'][0]['Instances']
+	instance_ids = []
+	if options.all:
+		instance_ids = sorted([inst['InstanceId'] for inst in asg_response])
+	else:
+		instance_ids = sorted([inst['InstanceId'] for i, inst in enumerate(asg_response) if i in options.indices])
+
+	instances = query_ctx_instance_info(options.region, instance_ids)
+	instances = [inst for inst in instances if inst.last_observed_state == 'running']
+
+	if len(instances) == 0:
+		print(f'No running instances in context {options.ctx}')
+		exit(13)
+
+	ssh_user = instances[0].user
+	if options.user != '':
+		ssh_user = options.user
+
+	ssh_key = instances[0].key
+	if options.key != '':
+		ssh_key = options.key
+
+	remote_access_opts = []
+	if ssh_key != '':
+		remote_access_opts = ['-i', ssh_key]
+
+	processes = []
+	for inst in instances:
+		scp_cmd = ['scp'] + remote_access_opts
+		if options.put:
+			scp_cmd = scp_cmd + [options.file, f'{ssh_user}@{inst.dns}:{options.location}']
+		elif options.get:
+			scp_cmd = scp_cmd + [f'{ssh_user}@{inst.dns}:{options.file}', options.location]
+
+		if options.parallel:
+			processes.append(subprocess.Popen(scp_cmd))
+		else:
+			subprocess.run(scp_cmd)
+
+	for proc in processes:
+		proc.wait()
+
 def scale_group(options):
 	asg = boto3.client('autoscaling')
 	asg.set_desired_capacity(

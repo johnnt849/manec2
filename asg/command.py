@@ -28,6 +28,23 @@ def add_arguments(parser):
 	ssh_instance_parser.add_argument('--parallel', '-p', action='store_true')
 	ssh_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
+	from manec2.asg.command import scp_instance_command
+	scp_instance_parser = subparsers.add_parser('scp', help=None)
+	scp_instance_parser.set_defaults(command=scp_instance_command)
+	scp_instance_parser.add_argument('auto_scaling_group_name', type=str)
+	scp_instance_parser.add_argument('file', type=str, default=None)
+	scp_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
+									 default=[0])
+	scp_instance_parser.add_argument('--all', action='store_true')
+	scp_instance_parser.add_argument('--user', '-u', type=str, default='')
+	scp_instance_parser.add_argument('--key', '-i', type=str, default='')
+	scp_instance_parser.add_argument('--get', action='store_true', default=False)
+	scp_instance_parser.add_argument('--put', action='store_true', default=False)
+	scp_instance_parser.add_argument('--location', '-l', type=str, default='.')
+
+	scp_instance_parser.add_argument('--parallel', '-p', action='store_true')
+	scp_instance_parser.add_argument('--region', '-r', type=str, default=None)
+
 	from manec2.asg.command import scale_group_command
 	scale_group_parser = subparsers.add_parser('scale', help=None)
 	scale_group_parser.set_defaults(command=scale_group_command)
@@ -59,6 +76,10 @@ def list_command(options):
 def ssh_instance_command(options):
 	from .asg import ssh_command
 	ssh_command(options)
+
+def scp_instance_command(options):
+	from .asg import scp_command
+	scp_command(options)
 
 def scale_group_command(options):
 	from .asg import scale_group
