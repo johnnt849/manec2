@@ -8,6 +8,9 @@ import manec2
 from manec2.utils.instance_type import Instance
 
 def query_ctx_instance_info(region, instance_ids, ssh_user='ubuntu', ssh_key='~/.ssh/john.pem'):
+	if not instance_ids:
+		return []
+
 	ec2_cli = boto3.client('ec2', region_name=region)
 	response = ec2_cli.describe_instances(InstanceIds=instance_ids)
 
@@ -56,7 +59,7 @@ def ssh_command(options):
 	instances = [inst for inst in instances if inst.last_observed_state == 'running']
 
 	if len(instances) == 0:
-		print(f'No running instances in context {options.ctx}')
+		print(f'No running instances in context {options.auto_scaling_group_name}')
 		exit(13)
 
 	ssh_user = instances[0].user
@@ -99,7 +102,7 @@ def scp_command(options):
 	instances = [inst for inst in instances if inst.last_observed_state == 'running']
 
 	if len(instances) == 0:
-		print(f'No running instances in context {options.ctx}')
+		print(f'No running instances in context {options.auto_scaling_group_name}')
 		exit(13)
 
 	ssh_user = instances[0].user
@@ -168,7 +171,7 @@ def rsync_group_command(options):
 	instances = [inst for inst in instances if inst.last_observed_state == 'running']
 
 	if len(instances) == 0:
-		print(f'No running instances in context {options.ctx}')
+		print(f'No running instances in context {options.auto_scaling_group_name}')
 		exit(13)
 
 	ssh_user = instances[0].user
