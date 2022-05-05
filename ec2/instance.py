@@ -144,10 +144,10 @@ def create_instances(options):
 	print("Created instances", instance_ids)
 
 def terminate_instances(options):
+	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(options.region, ctx)
 
-		ec2_cli = boto3.client('ec2', region_name=options.region)
 		msg = f"Are you sure you want to " + Fore.LIGHTRED_EX + "terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
 			+ Fore.RESET + f"in context '{ctx}'?\nType '" + Fore.RED + "terminate" + Fore.RESET + "' to confirm\n"
@@ -166,9 +166,9 @@ def terminate_instances(options):
 			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
 
 def start_instances(options):
+	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(options.region, ctx)
-		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -177,9 +177,9 @@ def start_instances(options):
 		print(f"Starting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def stop_instances(options):
+	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(options.region, ctx)
-		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -188,9 +188,9 @@ def stop_instances(options):
 		print(f"Stopping '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def reboot_instances(options):
+	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(options.region, ctx)
-		ec2_cli = boto3.client('ec2', region_name=options.region)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices!= -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
