@@ -3,6 +3,7 @@ import json
 import os
 import time
 import subprocess
+import sys
 
 from colorama import Fore
 
@@ -196,6 +197,34 @@ def reboot_instances(options):
 
 		ec2_cli.reboot_instances(InstanceIds=instance_ids)
 		print(f"Rebooting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
+
+def create_instance_image(options):
+	current_instances = query_ctx_instance_info(options.region, options.ctx)
+	instance_to_image = current_instances[options.index]
+	ec2_cli = boto3.client('ec2', region_name=options.region)
+
+	crt_img_response = ec2_cli.create_image(
+		Description=options.description,
+		InstanceId=instance_to_image.id,
+		Name=options.image_name
+	)
+
+	image_id = crt_img_response['ImageId']
+
+	if options.wait:
+		while True:
+			desc_image_response = ec2_cli.describe_images(ImageIds=[image_id])
+			current_state = desc_image_response['Images'][0]['State']
+			if current_state == 'available':
+				break
+
+			if current_state != 'pending':
+				print(f'Image has status {current_state}. Ending...', file=sys.stderr)
+				sys.exit(13)
+
+			time.sleep(5)
+
+		print(f'Image {image_id} available for use')
 
 def print_full_info(indices, ctx, instance_info):
 	print(str(len(instance_info)) + " instances:")

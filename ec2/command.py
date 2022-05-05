@@ -62,6 +62,16 @@ def add_arguments(parser):
 										default=-1)
 	reboot_instance_parser.add_argument('--region', '-r', type=str, default=None)
 
+	from manec2.ec2.command import create_instance_image_command
+	image_instance_parser = subparsers.add_parser('image', help=None)
+	image_instance_parser.set_defaults(command=create_instance_image_command)
+	image_instance_parser.add_argument('ctx', type=str, default=None)
+	image_instance_parser.add_argument('--index', '-ind', type=int, default=0)
+	image_instance_parser.add_argument('--image-name', '-n', type=str, default=None)
+	image_instance_parser.add_argument('--description', '-desc', type=str, default='')
+	image_instance_parser.add_argument('--wait', action='store_true', default=False)
+	image_instance_parser.add_argument('--region', '-r', type=str, default=None)
+
 	from manec2.ec2.command import info_instances_command
 	info_instance_parser = subparsers.add_parser('info', help=None)
 	info_instance_parser.set_defaults(command=info_instances_command)
@@ -150,6 +160,10 @@ def stop_instances_command(options):
 def reboot_instances_command(options):
 	from .instance import reboot_instances
 	reboot_instances(options)
+
+def create_instance_image_command(options):
+	from .instance import create_instance_image
+	create_instance_image(options)
 
 def info_instances_command(options):
 	from .instance import get_instance_info
