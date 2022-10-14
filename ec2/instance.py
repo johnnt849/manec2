@@ -9,10 +9,15 @@ from colorama import Fore
 
 import manec2
 from manec2.utils.instance_type import Instance
+from manec2.utils.load_defaults import get_default_config
 
+def create_boto3_client(profile, region, service='ec2'):
+	session = boto3.Session(profile_name=profile)
+	return session.client(service, region_name=region)
 
-def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/john.pem'):
-	ec2_cli = boto3.client('ec2', region_name=region)
+def query_ctx_instance_info(ctx, options):
+	ec2_cli = create_boto3_client(options.profile, options.region)
+
 	response = ec2_cli.describe_instances(
 		Filters=[
 			{
@@ -41,13 +46,13 @@ def query_ctx_instance_info(region, ctx, ssh_user='ubuntu', ssh_key='~/.ssh/john
 				pubip = inst['PublicIpAddress']
 				dns = inst['PublicDnsName']
 			instances.append(Instance(inst_id, inst_type, inst_place, prip, pubip,
-				dns, state, ssh_user, ssh_key))
+				dns, state))
 
 	instances.sort(key=lambda x : x.id)
 	return instances
 
 def get_contexts(options):
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 	response = ec2_cli.describe_instances(
 		Filters=[
 			{
@@ -74,9 +79,9 @@ def create_instances(options):
 		print("Context name 'all' is reserved. Choose another name")
 		exit(17)
 
-	ec2 = boto3.resource('ec2', region_name=options.region)
+	ec2 = create_boto3_client(options.profile, options.region)
 
-	if options.json:
+	if options.file:
 		launch_params = json.load(open(options.json, 'r'))
 		print(f'Launching with args {launch_params}')
 
@@ -85,6 +90,8 @@ def create_instances(options):
 		print("Created instances", instance_ids)
 
 		return
+
+	default_config = get_default_config(options)
 
 	if options.ami == None:
 		print("Please provide an AMI")
@@ -95,7 +102,7 @@ def create_instances(options):
 		'InstanceType': options.type,
 		'MinCount': options.cnt,
 		'MaxCount': options.cnt,
-		'KeyName': options.key_pair,
+		'KeyName': default_config['InstanceOptions']['KeyPair'] if options.key_pair == None else options.key_pair,
 		'TagSpecifications': [
 			{
 				'ResourceType': 'instance',
@@ -112,12 +119,7 @@ def create_instances(options):
 	if options.type != 't2.micro':
 		args['EbsOptimized'] = True
 
-	if options.region == 'us-east-1':
-		args['SecurityGroupIds'] = ['sg-098524cf5a5d0011f']
-	elif options.region == 'us-east-2':
-		args['SecurityGroupIds'] = ['sg-0a98f6952f8c78610']
-	elif options.region == 'us-west-2':
-		args['SecurityGroupIds'] = ['sg-087e10932df344958']
+	args['SecurityGroupIds'] = default_config['InstanceOptions']['SecurityGroups'][options.region]
 	
 	if options.az != None:
 		args['Placement'] = { 'AvailabilityZone': options.az }
@@ -146,7 +148,7 @@ def create_instances(options):
 def terminate_instances(options):
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(options.region, ctx)
+		current_instances = query_ctx_instance_info(ctx, options)
 
 		msg = f"Are you sure you want to " + Fore.LIGHTRED_EX + "terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
@@ -168,7 +170,7 @@ def terminate_instances(options):
 def start_instances(options):
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(options.region, ctx)
+		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -179,7 +181,7 @@ def start_instances(options):
 def stop_instances(options):
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(options.region, ctx)
+		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices != -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -190,7 +192,7 @@ def stop_instances(options):
 def reboot_instances(options):
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 	for ctx in options.ctx:
-		current_instances = query_ctx_instance_info(options.region, ctx)
+		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
 		if options.indices!= -1:
 			instance_ids = [instance_ids[i] for i in options.indices]
@@ -199,7 +201,7 @@ def reboot_instances(options):
 		print(f"Rebooting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def create_instance_image(options):
-	current_instances = query_ctx_instance_info(options.region, options.ctx)
+	current_instances = query_ctx_instance_info(options.ctx, options)
 	instance_to_image = current_instances[options.index]
 	ec2_cli = boto3.client('ec2', region_name=options.region)
 
@@ -235,7 +237,7 @@ def print_full_info(indices, ctx, instance_info):
 
 def get_instance_info(options):
 	for i, ctx in enumerate(options.ctx):
-		current_instances = query_ctx_instance_info(options.region, ctx)
+		current_instances = query_ctx_instance_info(ctx, options)
 		if len(current_instances) == 0:
 			print(f"Context '{ctx}' has no live instances")
 			return
@@ -279,8 +281,23 @@ def _ssh_failure(inst, trials):
 	if trials % 3 == 0:
 		print(f'Connection timed out. Retrying...')
 
+def _get_ssh_options(options):
+	default_config = get_default_config(options)
+
+	ssh_user = options.user if options.user is not None else default_config['SSHOptions'].get('User', None)
+	if ssh_user is None:
+		print("No default user found. Please provide a user (--user)")
+		exit(13)
+
+	ssh_key = options.key if options.key is not None else default_config['SSHOptions'].get('Key', None)
+	if ssh_key is None:
+		print("No default key found. Please provide an SSH key (--key)")
+		exit(13)
+
+	return ssh_user, ssh_key
+
 def ssh_to_instance(options):
-	current_instances = query_ctx_instance_info(options.region, options.ctx)
+	current_instances = query_ctx_instance_info(options.ctx, options)
 
 	if options.all:
 		## Filter for instances that are currently running
@@ -295,17 +312,7 @@ def ssh_to_instance(options):
 				print("At least one public IP is '0'. Make sure instance is running")
 				exit(13)
 
-	if options.user == '' and current_instances[0].user == '':
-		print("No cached user for this instance. Please provide a user (--user)")
-		exit(15)
-
-	ssh_user = current_instances[0].user
-	if options.user != '':
-		ssh_user = options.user
-
-	ssh_key = current_instances[0].key
-	if options.key != '':
-		ssh_key = options.key
+	ssh_user, ssh_key = _get_ssh_options(options)
 
 	remote_access_opts = []
 	if ssh_key != '':
@@ -347,7 +354,7 @@ def ssh_to_instance(options):
 			proc.wait()
 
 def rsync_instance(options):
-	current_instances = query_ctx_instance_info(options.region, options.ctx)
+	current_instances = query_ctx_instance_info(options.ctx, options)
 	if options.indices == -1:
 		current_instances = [inst for inst in current_instances \
 							if inst.last_observed_state == 'running']
@@ -362,17 +369,7 @@ def rsync_instance(options):
 			print("At least one public IP is '0'. Make sure instance is running")
 			exit(13)
 
-	if options.user == '' and current_instances[0].user == '':
-		print("No cached user for this instance. Please provide a user (--user)")
-		exit(15)
-
-	ssh_user = current_instances[0].user
-	if options.user != '':
-		ssh_user = options.user
-
-	ssh_key = current_instances[0].key
-	if options.key != '':
-		ssh_key = options.key
+	ssh_user, ssh_key = _get_ssh_options(options)
 
 	remote_access_opts = []
 	if ssh_key != '':
@@ -413,7 +410,7 @@ def rsync_instance(options):
 			proc.wait()
 
 def scp_instance(options):
-	current_instances = query_ctx_instance_info(options.region, options.ctx)
+	current_instances = query_ctx_instance_info(options.ctx, options)
 	if options.indices == -1:
 		current_instances = [inst for inst in current_instances \
 							if inst.last_observed_state == 'running']
@@ -428,17 +425,7 @@ def scp_instance(options):
 			print("At least one public IP is '0'. Make sure instance is running")
 			exit(13)
 
-	if options.user == '' and current_instances[0].user == '':
-		print("No cached user for this instance. Please provide a user (--user)")
-		exit(15)
-
-	ssh_user = current_instances[0].user
-	if options.user != '':
-		ssh_user = options.user
-
-	ssh_key = current_instances[0].key
-	if options.key != '':
-		ssh_key = options.key
+	ssh_user, ssh_key = _get_ssh_options(options)
 
 	remote_access_opts = []
 	if ssh_key != '':
