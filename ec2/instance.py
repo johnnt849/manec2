@@ -4,6 +4,7 @@ import os
 import time
 import subprocess
 import sys
+import yaml
 
 from colorama import Fore
 
@@ -79,10 +80,12 @@ def create_instances(options):
 		print("Context name 'all' is reserved. Choose another name")
 		exit(17)
 
-	ec2 = create_boto3_client(options.profile, options.region)
+	# Can't use boto3.client here. Use boto3.resource
+	session = boto3.Session(profile_name=options.profile)
+	ec2 = boto3.resource('ec2', region_name=options.region)
 
 	if options.file:
-		launch_params = json.load(open(options.json, 'r'))
+		launch_params = yaml.safe_load(open(options.file, 'r'))
 		print(f'Launching with args {launch_params}')
 
 		response = ec2.create_instances(**launch_params)
