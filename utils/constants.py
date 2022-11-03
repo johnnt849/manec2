@@ -1,0 +1,2 @@
+RED_TEXT = '\033[91m'
+RESET_TEXT = '\033[00m'

@@ -6,11 +6,11 @@ import subprocess
 import sys
 import yaml
 
-from colorama import Fore
 
 import manec2
 from manec2.utils.instance_type import Instance
 from manec2.utils.load_defaults import get_default_config
+from manec2.utils.constants import RED_TEXT, RESET_TEXT
 
 def create_boto3_client(profile, region, service='ec2'):
 	session = boto3.Session(profile_name=profile)
@@ -153,9 +153,9 @@ def terminate_instances(options):
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(ctx, options)
 
-		msg = f"Are you sure you want to " + Fore.LIGHTRED_EX + "terminate " + \
+		msg = f"Are you sure you want to " + RED_TEXT + "terminate " + \
 			f"{'**ALL** instances' if options.indices == -1 else f'instances {options.indices}'} " \
-			+ Fore.RESET + f"in context '{ctx}'?\nType '" + Fore.RED + "terminate" + Fore.RESET + "' to confirm\n"
+			+ RESET_TEXT + f"in context '{ctx}'?\nType '" + RED_TEXT + "terminate" + RESET_TEXT + "' to confirm\n"
 		confirm = input(msg)
 
 		if confirm != 'terminate':
