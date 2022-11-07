@@ -434,9 +434,13 @@ def scp_instance(options):
 	if ssh_key != '':
 		remote_access_opts = ['-i', ssh_key]
 
+	recursive_opts = []
+	if options.recursive:
+		recursive_opts = ['-r']
+
 	processes = []
 	for i, inst in enumerate(current_instances):
-		scp_cmd = ['scp'] + remote_access_opts
+		scp_cmd = ['scp'] + recursive_opts + remote_access_opts
 		if options.put:
 			scp_cmd = scp_cmd + [options.file, ssh_user + '@' + inst.dns + ':' + options.location]
 		elif options.get:

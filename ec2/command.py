@@ -126,6 +126,7 @@ def add_arguments(parser):
 	scp_instance_parser.add_argument('--key', '-i', type=str, default=None)
 	scp_instance_parser.add_argument('--get', action='store_true', default=False)
 	scp_instance_parser.add_argument('--put', action='store_true', default=False)
+	scp_instance_parser.add_argument('--recursive', action='store_true', default=False)
 	scp_instance_parser.add_argument('--location', '-l', type=str, default='.')
 	scp_instance_parser.add_argument('--indices', '-ids', type=int, nargs='+',
 									 default=-1)
