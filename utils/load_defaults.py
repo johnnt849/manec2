@@ -3,7 +3,7 @@ import yaml
 
 from pathlib import Path
 
-config_file_path = Path.home() / '.manec2.config'
+config_file_path = Path.home() / '.manec2_config.yaml'
 default_config = {}
 if os.path.exists(config_file_path):
     default_config = yaml.safe_load(open(config_file_path, 'r'))
