@@ -149,7 +149,7 @@ def create_instances(options):
 	print("Created instances", instance_ids)
 
 def terminate_instances(options):
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(ctx, options)
 
@@ -171,7 +171,7 @@ def terminate_instances(options):
 			print("Terminating instances", ", ".join([str(id) for id in instance_ids]))
 
 def start_instances(options):
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
@@ -182,7 +182,7 @@ def start_instances(options):
 		print(f"Starting '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def stop_instances(options):
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
@@ -193,7 +193,7 @@ def stop_instances(options):
 		print(f"Stopping '{ctx}' instances", ", ".join([str(id) for id in instance_ids]))
 
 def reboot_instances(options):
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 	for ctx in options.ctx:
 		current_instances = query_ctx_instance_info(ctx, options)
 		instance_ids = [inst.id for inst in current_instances]
@@ -206,7 +206,7 @@ def reboot_instances(options):
 def create_instance_image(options):
 	current_instances = query_ctx_instance_info(options.ctx, options)
 	instance_to_image = current_instances[options.index]
-	ec2_cli = boto3.client('ec2', region_name=options.region)
+	ec2_cli = create_boto3_client(options.profile, options.region)
 
 	crt_img_response = ec2_cli.create_image(
 		Description=options.description,
