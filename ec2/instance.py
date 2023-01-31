@@ -105,7 +105,7 @@ def create_instances(options):
 		'InstanceType': options.type,
 		'MinCount': options.cnt,
 		'MaxCount': options.cnt,
-		'KeyName': default_config['InstanceOptions']['KeyPair'] if options.key_pair == None else options.key_pair,
+		'KeyName': default_config['InstanceOptions']['KeyPair'][options.region] if options.key_pair == None else options.key_pair,
 		'TagSpecifications': [
 			{
 				'ResourceType': 'instance',
@@ -292,7 +292,7 @@ def _get_ssh_options(options):
 		print("No default user found. Please provide a user (--user)")
 		exit(13)
 
-	ssh_key = options.key if options.key is not None else default_config['SSHOptions'].get('Key', None)
+	ssh_key = options.key if options.key is not None else default_config['SSHOptions']['Keys'].get(options.region, None)
 	if ssh_key is None:
 		print("No default key found. Please provide an SSH key (--key)")
 		exit(13)
